@@ -34,8 +34,9 @@ public class Game2DClean extends Application {
 
    private static String[] args;
 
-   private final static String ICON_IMAGE = "amongus.png"; // file with icon for a racer
-   private final static String ICON_IMAGE_RUNNERS = "amongusRunners.png"; // file with icon for a racer
+   private final static String CREWMATE_IMAGE = "amongus.png"; // file with icon for a crewmate
+   private final static String CREWMATE_RUNNERS = "amongusRunners.png"; // file with icon for crewmates
+   private static final String BACKGROUND_IMAGE = "background.jpg"; // 
 
    // main program
    public static void main(String[] _args) {
@@ -70,6 +71,32 @@ public class Game2DClean extends Application {
       // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
       stage.setScene(scene);
       stage.show();
+   }
+
+   class Crewmate extends Pane {
+      private int posX = 0;
+      private int posY = 0;
+      private ImageView aPicView = null;
+
+      public Crewmate() {
+         aPicView = new ImageView(CREWMATE_IMAGE);
+         this.getChildren().add(aPicView);
+      }
+
+      public void update() {
+         double speed = 5;
+
+         posX += (Math.random() - 0.5) * speed;
+         posY += (Math.random() - 0.5) * speed;
+
+         // set image pos
+         this.aPicView.setTranslateX(posX);
+         this.aPicView.setTranslateY(posY);
+
+         // loop at screen edges
+         if(posX > 800) posX = 0;
+         if(posY > 500) posy = 0;
+      }
    }
 
 } // end class Races
