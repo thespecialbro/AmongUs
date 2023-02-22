@@ -36,7 +36,10 @@ public class Game2DClean extends Application {
 
     private final static String CREWMATE_IMAGE = "assets/amongus.png"; // file with icon for a crewmate
     private final static String CREWMATE_RUNNERS = "assets/amongusRunners.png"; // file with icon for crewmates
-    private static final String BACKGROUND_IMAGE = "assets/background.jpg"; //
+    private static final String BACKGROUND_IMAGE = "assets/background.jpg";
+    private static final String COLLIDE_MASK_IMAGE = "assets/collision.png";
+
+    private ImageView collisionMask = null;
 
     AnimationTimer animTimer = null;
     private long renderCounter = 0;
@@ -73,6 +76,10 @@ public class Game2DClean extends Application {
     // start the game scene
     public void initializeScene() {
         crewmate = new Crewmate();
+        crewmate.setPos(200, 200);
+
+        collisionMask = new ImageView(new File(COLLIDE_MASK_IMAGE).toURI().toString());
+        root.getChildren().add(collisionMask);
         root.getChildren().add(crewmate);
 
         // display the window
@@ -146,31 +153,43 @@ public class Game2DClean extends Application {
     }
 
     class Crewmate extends Pane {
-        private int posX = 0;
-        private int posY = 0;
-        private ImageView aPicView = null;
+        private double posX = 0;
+        private double posY = 0;
+        private ImageView sprite = null;
         private double imgWidth;
         private double imgHeight;
 
         public Crewmate() {
-            aPicView = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
-            this.getChildren().add(aPicView);
+            sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
+            this.getChildren().add(sprite);
 
-            imgWidth = aPicView.getImage().getWidth();
-            imgHeight = aPicView.getImage().getHeight();
+            imgWidth = sprite.getImage().getWidth();
+            imgHeight = sprite.getImage().getHeight();
+        }
+
+        public void setPos(double x, double y) {
+            this.posX = x;
+            this.posY = y;
         }
 
         public void update() {
             double speed = 5;
 
-            if(goUP) posY -= speed;
-            if(goDOWN) posY += speed;
-            if(goLEFT) posX -= speed;
-            if(goRIGHT) posX += speed;
+            if(goUP) {
+                if(!checkCollision(posX, posY-speed)) posY -= speed;
+            }
+            if(goDOWN) {
+                if(!checkCollision(posX, posY+speed)) posY += speed;
+            }
+            if(goLEFT) {
+                if(!checkCollision(posX-speed, posY)) posX -= speed;
+            }if(goRIGHT) {
+                if(!checkCollision(posX+speed, posY)) posX += speed;
+            }
 
             // set image pos (centered so coords aren't top-left of the image)
-            this.aPicView.setTranslateX(posX - (imgWidth/2));
-            this.aPicView.setTranslateY(posY - (imgHeight/2));
+            this.sprite.setTranslateX(posX - (imgWidth/2));
+            this.sprite.setTranslateY(posY - (imgHeight/2));
 
             // loop at screen edges
             if (posX > 800) posX = 0;
@@ -178,6 +197,10 @@ public class Game2DClean extends Application {
 
             if(posX < 0) posX = 800;
             if(posY < 0) posY = 500;
+        }
+
+        public boolean checkCollision(double posX, double posY) {
+            return !(collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(0, 1, 0, 1)));
         }
     }
 
