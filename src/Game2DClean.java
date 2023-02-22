@@ -34,9 +34,9 @@ public class Game2DClean extends Application {
 
     private static String[] args;
 
-    private final static String CREWMATE_IMAGE = "../assets/amongus.png"; // file with icon for a crewmate
-    private final static String CREWMATE_RUNNERS = "../assets/amongusRunners.png"; // file with icon for crewmates
-    private static final String BACKGROUND_IMAGE = "../assets/background.jpg"; //
+    private final static String CREWMATE_IMAGE = "assets/amongus.png"; // file with icon for a crewmate
+    private final static String CREWMATE_RUNNERS = "assets/amongusRunners.png"; // file with icon for crewmates
+    private static final String BACKGROUND_IMAGE = "assets/background.jpg"; //
 
     AnimationTimer animTimer = null;
     private long renderCounter = 0;
@@ -58,6 +58,7 @@ public class Game2DClean extends Application {
         stage.setOnCloseRequest(
                 new EventHandler<WindowEvent>() {
                     public void handle(WindowEvent evt) {
+                        System.out.println("Goodbye!");
                         System.exit(0);
                     }
                 });
@@ -152,7 +153,7 @@ public class Game2DClean extends Application {
         private double imgHeight;
 
         public Crewmate() {
-            aPicView = new ImageView(CREWMATE_IMAGE);
+            aPicView = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
             this.getChildren().add(aPicView);
 
             imgWidth = aPicView.getImage().getWidth();
