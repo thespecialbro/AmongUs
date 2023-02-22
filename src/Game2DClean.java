@@ -95,7 +95,7 @@ public class Game2DClean extends Application {
 
          // loop at screen edges
          if(posX > 800) posX = 0;
-         if(posY > 500) posy = 0;
+         if(posY > 500) posY = 0;
       }
    }
 
