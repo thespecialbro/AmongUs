@@ -38,6 +38,12 @@ public class Game2DClean extends Application {
     private final static String CREWMATE_RUNNERS = "amongusRunners.png"; // file with icon for crewmates
     private static final String BACKGROUND_IMAGE = "background.jpg"; //
 
+    AnimationTimer animTimer = null;
+    private long renderCounter = 0;
+    boolean goUP, goDOWN, goRIGHT, goLEFT = false;
+
+    Crewmate crewmate = null;
+
     // main program
     public static void main(String[] _args) {
         args = _args;
@@ -65,12 +71,78 @@ public class Game2DClean extends Application {
 
     // start the game scene
     public void initializeScene() {
+        crewmate = new Crewmate();
+        root.getChildren().add(crewmate);
 
         // display the window
         scene = new Scene(root, 800, 500);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
+
+
+
+        // KEY PRESS
+        scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent button) {
+                switch(button.getCode()) {
+                    case UP:
+                        goUP = true;
+                        break;
+
+                    case DOWN:
+                        goDOWN = true;
+                        break;
+
+                    case LEFT:
+                        goLEFT = true;
+                        break;
+
+                    case RIGHT:
+                        goRIGHT = true;
+                        break;
+
+                    default:;
+                }
+            } 
+        });
+
+        // KEY RELEASE
+        scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent button) {
+                switch(button.getCode()) {
+                    case UP:
+                        goUP = false;
+                        break;
+
+                    case DOWN:
+                        goDOWN = false;
+                        break;
+
+                    case LEFT:
+                        goLEFT = false;
+                        break;
+
+                    case RIGHT:
+                        goRIGHT = false;
+                        break;
+
+                    default:;
+                }
+            }
+        });
+
+        animTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                crewmate.update();
+            }
+
+        };
+
+        animTimer.start();
     }
 
     class Crewmate extends Pane {
@@ -86,8 +158,13 @@ public class Game2DClean extends Application {
         public void update() {
             double speed = 5;
 
-            posX += (Math.random() - 0.5) * speed;
-            posY += (Math.random() - 0.5) * speed;
+            if(goUP) posY -= speed;
+            if(goDOWN) posY += speed;
+            if(goLEFT) posX -= speed;
+            if(goRIGHT) posX += speed;
+
+            // posX += (Math.random() - 0.5) * speed;
+            // posY += (Math.random() - 0.5) * speed;
 
             // set image pos
             this.aPicView.setTranslateX(posX);
