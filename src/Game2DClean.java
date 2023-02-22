@@ -149,10 +149,15 @@ public class Game2DClean extends Application {
         private int posX = 0;
         private int posY = 0;
         private ImageView aPicView = null;
+        private double imgWidth;
+        private double imgHeight;
 
         public Crewmate() {
             aPicView = new ImageView(CREWMATE_IMAGE);
             this.getChildren().add(aPicView);
+
+            imgWidth = aPicView.getImage().getWidth();
+            imgHeight = aPicView.getImage().getHeight();
         }
 
         public void update() {
@@ -163,18 +168,16 @@ public class Game2DClean extends Application {
             if(goLEFT) posX -= speed;
             if(goRIGHT) posX += speed;
 
-            // posX += (Math.random() - 0.5) * speed;
-            // posY += (Math.random() - 0.5) * speed;
-
-            // set image pos
-            this.aPicView.setTranslateX(posX);
-            this.aPicView.setTranslateY(posY);
+            // set image pos (centered so coords aren't top-left of the image)
+            this.aPicView.setTranslateX(posX - (imgWidth/2));
+            this.aPicView.setTranslateY(posY - (imgHeight/2));
 
             // loop at screen edges
-            if (posX > 800)
-                posX = 0;
-            if (posY > 500)
-                posY = 0;
+            if (posX > 800) posX = 0;
+            if (posY > 500) posY = 0;
+
+            if(posX < 0) posX = 800;
+            if(posY < 0) posY = 500;
         }
     }
 
