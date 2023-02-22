@@ -34,9 +34,9 @@ public class Game2DClean extends Application {
 
     private static String[] args;
 
-    private final static String CREWMATE_IMAGE = "amongus.png"; // file with icon for a crewmate
-    private final static String CREWMATE_RUNNERS = "amongusRunners.png"; // file with icon for crewmates
-    private static final String BACKGROUND_IMAGE = "background.jpg"; //
+    private final static String CREWMATE_IMAGE = "../assets/amongus.png"; // file with icon for a crewmate
+    private final static String CREWMATE_RUNNERS = "../assets/amongusRunners.png"; // file with icon for crewmates
+    private static final String BACKGROUND_IMAGE = "../assets/background.jpg"; //
 
     AnimationTimer animTimer = null;
     private long renderCounter = 0;
@@ -139,7 +139,6 @@ public class Game2DClean extends Application {
             public void handle(long now) {
                 crewmate.update();
             }
-
         };
 
         animTimer.start();
