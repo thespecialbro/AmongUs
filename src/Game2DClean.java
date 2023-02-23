@@ -16,6 +16,8 @@ import java.util.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
 
+
+
 /**
  * AmongUSStarter with JavaFX and Threads
  * Loading imposters
@@ -34,12 +36,16 @@ public class Game2DClean extends Application {
 
     private static String[] args;
 
+    private static final String SETTINGS = "settings.txt";
+
     private final static String CREWMATE_IMAGE = "assets/amongus.png"; // file with icon for a crewmate
     private final static String CREWMATE_RUNNERS = "assets/amongusRunners.png"; // file with icon for crewmates
-    private static final String BACKGROUND_IMAGE = "assets/background.jpg";
-    private static final String COLLIDE_MASK_IMAGE = "assets/collision.png";
+    private static String backgroundImage = "assets/background.jpg"; // default value for debug purposes
+    private static String collideMaskImage = "assets/collision.png"; // default value for debug purposes
 
     private ImageView collisionMask = null;
+    private ImageView background = null;
+    private Label testLabel = new Label();
 
     AnimationTimer animTimer = null;
     private long renderCounter = 0;
@@ -69,45 +75,68 @@ public class Game2DClean extends Application {
         // root pane
         root = new StackPane();
 
-        initializeScene();
+        loadSettings();
 
+        initializeScene();
+    }
+
+    public void loadSettings() {
+        try {
+            Scanner settingsReader = new Scanner(new File(SETTINGS));
+
+            ArrayList<String[]> settings = new ArrayList<String[]>();
+            while(settingsReader.hasNext()) {
+                settings.add(settingsReader.nextLine().split("="));
+            }
+
+            for(String[] setting : settings) {
+                if(setting[0].equals("level")) {
+                    backgroundImage = String.format("levels/%s/background.png", setting[1]);
+                    collideMaskImage = String.format("levels/%s/collide_mask.png", setting[1]);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     // start the game scene
     public void initializeScene() {
         crewmate = new Crewmate();
-        crewmate.setPos(200, 200);
+        crewmate.setPos(500, 500);
 
-        collisionMask = new ImageView(new File(COLLIDE_MASK_IMAGE).toURI().toString());
-        root.getChildren().add(collisionMask);
+        collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
+        background = new ImageView(new File(backgroundImage).toURI().toString());
+        //root.getChildren().add(collisionMask); // debug
+
+        root.getChildren().add(background);
         root.getChildren().add(crewmate);
+        root.getChildren().add(testLabel);
 
         // display the window
-        scene = new Scene(root, 800, 500);
+        scene = new Scene(root, 1600, 900);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
-
-
 
         // KEY PRESS
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent button) {
                 switch(button.getCode()) {
-                    case UP:
+                    case W:
                         goUP = true;
                         break;
 
-                    case DOWN:
+                    case S:
                         goDOWN = true;
                         break;
 
-                    case LEFT:
+                    case A:
                         goLEFT = true;
                         break;
 
-                    case RIGHT:
+                    case D:
                         goRIGHT = true;
                         break;
 
@@ -121,19 +150,19 @@ public class Game2DClean extends Application {
             @Override
             public void handle(KeyEvent button) {
                 switch(button.getCode()) {
-                    case UP:
+                    case W:
                         goUP = false;
                         break;
 
-                    case DOWN:
+                    case S:
                         goDOWN = false;
                         break;
 
-                    case LEFT:
+                    case A:
                         goLEFT = false;
                         break;
 
-                    case RIGHT:
+                    case D:
                         goRIGHT = false;
                         break;
 
@@ -146,6 +175,7 @@ public class Game2DClean extends Application {
             @Override
             public void handle(long now) {
                 crewmate.update();
+                //testLabel.setText("" + now/1000000);
             }
         };
 
@@ -175,6 +205,10 @@ public class Game2DClean extends Application {
         public void update() {
             double speed = 5;
 
+            if(goUP || goDOWN || goRIGHT || goLEFT) {
+                // do animation
+            }
+
             if(goUP) {
                 if(!checkCollision(posX, posY-speed)) posY -= speed;
             }
@@ -183,7 +217,8 @@ public class Game2DClean extends Application {
             }
             if(goLEFT) {
                 if(!checkCollision(posX-speed, posY)) posX -= speed;
-            }if(goRIGHT) {
+            }
+            if(goRIGHT) {
                 if(!checkCollision(posX+speed, posY)) posX += speed;
             }
 
@@ -192,15 +227,15 @@ public class Game2DClean extends Application {
             this.sprite.setTranslateY(posY - (imgHeight/2));
 
             // loop at screen edges
-            if (posX > 800) posX = 0;
-            if (posY > 500) posY = 0;
+            // if (posX > 800) posX = 0;
+            // if (posY > 500) posY = 0;
 
-            if(posX < 0) posX = 800;
-            if(posY < 0) posY = 500;
+            // if(posX < 0) posX = 800;
+            // if(posY < 0) posY = 500;
         }
 
         public boolean checkCollision(double posX, double posY) {
-            return !(collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(0, 1, 0, 1)));
+            return !(collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(200.0/255, 162.0/255, 200.0/255, 1)));
         }
     }
 
