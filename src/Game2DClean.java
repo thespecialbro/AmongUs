@@ -84,17 +84,15 @@ public class Game2DClean extends Application {
         try {
             Scanner settingsReader = new Scanner(new File(SETTINGS));
 
-            ArrayList<String[]> settings = new ArrayList<String[]>();
+            Map<String, String> settingsMap = new HashMap<String, String>();
             while(settingsReader.hasNext()) {
-                settings.add(settingsReader.nextLine().split("="));
+                String[] s = settingsReader.nextLine().split("=");
+                settingsMap.put(s[0], s[1]);
             }
 
-            for(String[] setting : settings) {
-                if(setting[0].equals("level")) {
-                    backgroundImage = String.format("levels/%s/background.png", setting[1]);
-                    collideMaskImage = String.format("levels/%s/collide_mask.png", setting[1]);
-                }
-            }
+            backgroundImage = String.format("levels/%s/background.png", settingsMap.get("level"));
+            collideMaskImage = String.format("levels/%s/collide_mask.png", settingsMap.get("level"));
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -107,9 +105,9 @@ public class Game2DClean extends Application {
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
         background = new ImageView(new File(backgroundImage).toURI().toString());
-        //root.getChildren().add(collisionMask); // debug
-
+        
         root.getChildren().add(background);
+        //root.getChildren().add(collisionMask); // debug
         root.getChildren().add(crewmate);
         root.getChildren().add(testLabel);
 
@@ -124,18 +122,22 @@ public class Game2DClean extends Application {
             @Override
             public void handle(KeyEvent button) {
                 switch(button.getCode()) {
+                    case UP:
                     case W:
                         goUP = true;
                         break;
 
+                    case DOWN:
                     case S:
                         goDOWN = true;
                         break;
 
+                    case LEFT:
                     case A:
                         goLEFT = true;
                         break;
 
+                    case RIGHT:
                     case D:
                         goRIGHT = true;
                         break;
@@ -150,18 +152,22 @@ public class Game2DClean extends Application {
             @Override
             public void handle(KeyEvent button) {
                 switch(button.getCode()) {
+                    case UP:
                     case W:
                         goUP = false;
                         break;
 
+                    case DOWN:
                     case S:
                         goDOWN = false;
                         break;
 
+                    case LEFT:
                     case A:
                         goLEFT = false;
                         break;
 
+                    case RIGHT:
                     case D:
                         goRIGHT = false;
                         break;
@@ -175,7 +181,6 @@ public class Game2DClean extends Application {
             @Override
             public void handle(long now) {
                 crewmate.update();
-                //testLabel.setText("" + now/1000000);
             }
         };
 
