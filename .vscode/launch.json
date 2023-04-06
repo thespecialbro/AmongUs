@@ -9,7 +9,8 @@
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "--module-path C:\\Users\\Sam\\school\\rit\\programming2\\javafx-sdk-11.0.2\\lib --add-modules javafx.controls"
+            "vmArgs": "--module-path C:\\Users\\Sam\\school\\rit\\programming2\\javafx-sdk-11.0.2\\lib --add-modules javafx.controls",
+            "vmArgs": "--module-path C:\\Users\\korisnik\\Desktop\\java\\javafx-sdk-11.0.2\\lib --add-modules javafx.controls"
         },
         {
             "type": "java",
@@ -24,7 +25,8 @@
             "request": "launch",
             "mainClass": "Game2DClean",
             "projectName": "AmongUs_bedead4f",
-            "vmArgs": "--module-path C:\\Users\\Sam\\school\\rit\\programming2\\javafx-sdk-11.0.2\\lib --add-modules javafx.controls"
+            "vmArgs": "--module-path C:\\Users\\Sam\\school\\rit\\programming2\\javafx-sdk-11.0.2\\lib --add-modules javafx.controls",
+            "vmArgs": "--module-path C:\\Users\\korisnik\\Desktop\\java\\javafx-sdk-11.0.2\\lib --add-modules javafx.controls"
         }
     ]
 }

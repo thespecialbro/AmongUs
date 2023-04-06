@@ -12,6 +12,7 @@ import javafx.stage.*;
 import javafx.geometry.*;
 import javafx.animation.*;
 import java.io.*;
+import java.net.Socket;
 import java.util.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
@@ -53,10 +54,19 @@ public class Game2DClean extends Application {
 
     Crewmate crewmate = null;
 
+    // client stuff
+    public static final int SERVER_PORT = 12345;
+    Socket socket = null;
+    private String ip = "127.0.0.1";
+
     // main program
     public static void main(String[] _args) {
         args = _args;
         launch(args);
+    }
+
+    public Game2DClean(String ip) {
+        
     }
 
     // start() method, called via launch
@@ -208,35 +218,52 @@ public class Game2DClean extends Application {
         }
 
         public void update() {
-            double speed = 5;
-
-            if(goUP || goDOWN || goRIGHT || goLEFT) {
+            double speed = 2;
+        
+            if (goUP || goDOWN || goRIGHT || goLEFT) {
                 // do animation
             }
-
-            if(goUP) {
-                if(!checkCollision(posX, posY-speed)) posY -= speed;
+        
+            // Check diagonal movement first
+            if (goUP && goLEFT) {
+                if (!checkCollision(posX - speed, posY - speed)) {
+                    posX -= speed;
+                    posY -= speed;
+                }
+            } else if (goUP && goRIGHT) {
+                if (!checkCollision(posX + speed, posY - speed)) {
+                    posX += speed;
+                    posY -= speed;
+                }
+            } else if (goDOWN && goLEFT) {
+                if (!checkCollision(posX - speed, posY + speed)) {
+                    posX -= speed;
+                    posY += speed;
+                }
+            } else if (goDOWN && goRIGHT) {
+                if (!checkCollision(posX + speed, posY + speed)) {
+                    posX += speed;
+                    posY += speed;
+                }
+            } else {
+                // Check individual movements
+                if (goUP) {
+                    if (!checkCollision(posX, posY - speed)) posY -= speed;
+                }
+                if (goDOWN) {
+                    if (!checkCollision(posX, posY + speed)) posY += speed;
+                }
+                if (goLEFT) {
+                    if (!checkCollision(posX - speed, posY)) posX -= speed;
+                }
+                if (goRIGHT) {
+                    if (!checkCollision(posX + speed, posY)) posX += speed;
+                }
             }
-            if(goDOWN) {
-                if(!checkCollision(posX, posY+speed)) posY += speed;
-            }
-            if(goLEFT) {
-                if(!checkCollision(posX-speed, posY)) posX -= speed;
-            }
-            if(goRIGHT) {
-                if(!checkCollision(posX+speed, posY)) posX += speed;
-            }
-
+        
             // set image pos (centered so coords aren't top-left of the image)
-            this.sprite.setTranslateX(posX - (imgWidth/2));
-            this.sprite.setTranslateY(posY - (imgHeight/2));
-
-            // loop at screen edges
-            // if (posX > 800) posX = 0;
-            // if (posY > 500) posY = 0;
-
-            // if(posX < 0) posX = 800;
-            // if(posY < 0) posY = 500;
+            this.sprite.setTranslateX(posX - (imgWidth / 2));
+            this.sprite.setTranslateY(posY - (imgHeight / 2));
         }
 
         public boolean checkCollision(double posX, double posY) {
@@ -245,3 +272,4 @@ public class Game2DClean extends Application {
     }
 
 } // end class Races
+
