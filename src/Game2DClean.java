@@ -1,4 +1,6 @@
 import javafx.application.*;
+import javafx.beans.property.*;
+
 import javafx.event.*;
 import javafx.scene.*;
 import javafx.scene.image.*;
@@ -193,6 +195,7 @@ public class Game2DClean extends Application {
         private ImageView sprite = null;
         private double imgWidth;
         private double imgHeight;
+        private AnimationTimer updateAnim;
 
         public Crewmate() {
             sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
@@ -200,6 +203,75 @@ public class Game2DClean extends Application {
 
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
+
+            updateAnim = new AnimationTimer() {
+                long delta;
+                long lastFrameTime;
+                DoubleProperty framerate = new SimpleDoubleProperty(0);
+
+                @Override
+                public void handle(long time) {
+                    // delta = time - lastFrameTime;
+                    // lastFrameTime = time;
+                    updateFrametime(time);
+                    updateFramerate();
+                    tick();
+                }
+
+                public double getFramerate() {
+                    return framerate.get();
+                }
+
+                public DoubleProperty framerateProperty() {
+                    return framerate;
+                }
+
+                public void updateFrametime(long nowNano) {
+                    nowNano -= lastFrameTime;
+                    lastFrameTime = nowNano;
+                }
+
+                public void updateFramerate() {
+                    framerate.set(getFramerateHz());
+                }
+
+                public void tick() {
+                    
+                    double speed = 5;
+                    double sin45 = Math.sin(Math.PI / 2.0);
+
+                    if((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
+                        // todo play animation
+                    }
+                    
+                    if((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
+                        speed *= sin45;
+                    }
+                    if(goUP) {
+                        if(!checkCollision(posX, posY-speed)) posY -= speed;
+                    }
+                    if(goDOWN) {
+                        if(!checkCollision(posX, posY+speed)) posY += speed;
+                    }
+                    if(goLEFT) {
+                        if(!checkCollision(posX-speed, posY)) posX -= speed;
+                    }
+                    if(goRIGHT) {
+                        if(!checkCollision(posX+speed, posY)) posX += speed;
+                    }
+
+                    
+                }
+
+                public long getDelta() {
+                    return delta;
+                }
+
+                public double getFramerateHz() {
+                    double frameRate = 1.0 / delta;
+                    return frameRate * 1e9;
+                }
+            };
         }
 
         public void setPos(double x, double y) {
@@ -208,28 +280,13 @@ public class Game2DClean extends Application {
         }
 
         public void update() {
-            double speed = 5;
-
-            if(goUP || goDOWN || goRIGHT || goLEFT) {
-                // do animation
-            }
-
-            if(goUP) {
-                if(!checkCollision(posX, posY-speed)) posY -= speed;
-            }
-            if(goDOWN) {
-                if(!checkCollision(posX, posY+speed)) posY += speed;
-            }
-            if(goLEFT) {
-                if(!checkCollision(posX-speed, posY)) posX -= speed;
-            }
-            if(goRIGHT) {
-                if(!checkCollision(posX+speed, posY)) posX += speed;
-            }
+            updateAnim.handle(System.nanoTime());
 
             // set image pos (centered so coords aren't top-left of the image)
             this.sprite.setTranslateX(posX - (imgWidth/2));
             this.sprite.setTranslateY(posY - (imgHeight/2));
+
+            //
 
             // loop at screen edges
             // if (posX > 800) posX = 0;
