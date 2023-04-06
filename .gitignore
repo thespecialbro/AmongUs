@@ -1,1 +1,7 @@
 /.vscode/
+*.class
+
+/assessme/
+diff.*
+
+/bin/*
