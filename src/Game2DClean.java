@@ -18,8 +18,6 @@ import java.util.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
 
-
-
 /**
  * AmongUSStarter with JavaFX and Threads
  * Loading imposters
@@ -52,6 +50,9 @@ public class Game2DClean extends Application {
     AnimationTimer animTimer = null;
     private long renderCounter = 0;
     boolean goUP, goDOWN, goRIGHT, goLEFT = false;
+
+    private double angle = 0;
+    private boolean isSliding = false;
 
     Crewmate crewmate = null;
 
@@ -87,7 +88,7 @@ public class Game2DClean extends Application {
             Scanner settingsReader = new Scanner(new File(SETTINGS));
 
             Map<String, String> settingsMap = new HashMap<String, String>();
-            while(settingsReader.hasNext()) {
+            while (settingsReader.hasNext()) {
                 String[] s = settingsReader.nextLine().split("=");
                 settingsMap.put(s[0], s[1]);
             }
@@ -107,12 +108,11 @@ public class Game2DClean extends Application {
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
         background = new ImageView(new File(backgroundImage).toURI().toString());
-        
+
         root.getChildren().add(background);
-        //root.getChildren().add(collisionMask); // debug
+        // root.getChildren().add(collisionMask); // debug
         root.getChildren().add(crewmate);
         root.getChildren().add(testLabel);
-
         // display the window
         scene = new Scene(root, 1600, 900);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
@@ -123,7 +123,7 @@ public class Game2DClean extends Application {
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent button) {
-                switch(button.getCode()) {
+                switch (button.getCode()) {
                     case UP:
                     case W:
                         goUP = true;
@@ -144,16 +144,17 @@ public class Game2DClean extends Application {
                         goRIGHT = true;
                         break;
 
-                    default:;
+                    default:
+                        ;
                 }
-            } 
+            }
         });
 
         // KEY RELEASE
         scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent button) {
-                switch(button.getCode()) {
+                switch (button.getCode()) {
                     case UP:
                     case W:
                         goUP = false;
@@ -174,7 +175,8 @@ public class Game2DClean extends Application {
                         goRIGHT = false;
                         break;
 
-                    default:;
+                    default:
+                        ;
                 }
             }
         });
@@ -204,8 +206,6 @@ public class Game2DClean extends Application {
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
 
-            
-
             updateAnim = new AnimationTimer() {
                 long delta;
                 long lastFrameTime;
@@ -218,7 +218,7 @@ public class Game2DClean extends Application {
                     updateFrametime(time);
                     updateFramerate();
                     tick();
-                    //update();
+                    // update();
                 }
 
                 public double getFramerate() {
@@ -239,31 +239,80 @@ public class Game2DClean extends Application {
                 }
 
                 public void tick() {
-                    
-                    double speed = 5;
-                    double sin45 = Math.sin(Math.PI / 2.0);
 
-                    if((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
+                    double speed = 5;
+                    double sin45 = Math.sin(Math.PI / 4.0);
+
+                    if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
                         // todo play animation
                     }
-                    
-                    if((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
+
+                    if ((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
                         speed *= sin45;
                     }
-                    if(goUP) {
-                        if(!checkCollision(posX, posY-speed)) posY -= speed;
+                    if (goUP) {
+                        if (!checkCollision(posX, posY - speed))
+                            posY -= speed;
                     }
-                    if(goDOWN) {
-                        if(!checkCollision(posX, posY+speed)) posY += speed;
+                    if (goDOWN) {
+                        if (!checkCollision(posX, posY + speed))
+                            posY += speed;
                     }
-                    if(goLEFT) {
-                        if(!checkCollision(posX-speed, posY)) posX -= speed;
+                    if (goLEFT) {
+                        if (!checkCollision(posX - speed, posY))
+                            posX -= speed;
                     }
-                    if(goRIGHT) {
-                        if(!checkCollision(posX+speed, posY)) posX += speed;
+                    if (goRIGHT) {
+                        if (!checkCollision(posX + speed, posY))
+                            posX += speed;
                     }
 
-                    
+                    double dx = 0;
+                    double dy = 0;
+                    if (goLEFT) {
+                        dx -= speed;
+                    }
+                    if (goRIGHT) {
+                        dx += speed;
+                    }
+                    if (goUP) {
+                        dy -= speed;
+                    }
+                    if (goDOWN) {
+                        dy += speed;
+                    }
+
+                    // check for collision in the current moving direction
+                    boolean collide = checkCollision(posX + dx, posY + dy);
+
+                    if (collide) { // hit a wall and only one key is pressed
+                        double angle = Math.round(Math.atan2(dy, dx));
+                        if (angle == 0 || angle == 90 || angle == 180 || angle == 270) {
+                            isSliding = false;
+                        }
+                        double deltaPosX = Math.cos(angle);
+                        double deltaPosY = Math.sin(angle);
+
+                        // check for collision in the direction perpendicular to the wall
+                        boolean collidePerpendicular = checkCollision(posX + deltaPosY, posY - deltaPosX);
+                        if (!collidePerpendicular) { // slide along the wall
+                            posX += deltaPosY;
+                            posY -= deltaPosX;
+                            isSliding = true;
+                        } else { // check for collision in the opposite direction perpendicular to the wall
+                            collidePerpendicular = checkCollision(posX - deltaPosY, posY + deltaPosX);
+                            if (!collidePerpendicular) { // slide along the opposite direction of the wall
+                                posX -= deltaPosY;
+                                posY += deltaPosX;
+                                isSliding = true;
+                            } else { // still colliding
+                                isSliding = false;
+                            }
+                        }
+                    } else { // no collision, not sliding
+                        isSliding = false;
+                    }
+
                 }
 
                 public long getDelta() {
@@ -277,10 +326,9 @@ public class Game2DClean extends Application {
             };
 
             Platform.runLater(() -> {
-                sprite.setTranslateX((background.getImage().getWidth() / 2) - (imgWidth/2));
-                sprite.setTranslateY((background.getImage().getHeight() / 2) - (imgHeight/2));
-            }
-            );
+                sprite.setTranslateX((background.getImage().getWidth() / 2) - (imgWidth / 2));
+                sprite.setTranslateY((background.getImage().getHeight() / 2) - (imgHeight / 2));
+            });
         }
 
         public void setPos(double x, double y) {
@@ -292,16 +340,18 @@ public class Game2DClean extends Application {
             updateAnim.handle(System.nanoTime());
 
             // set image pos (centered so coords aren't top-left of the image)
-            //this.sprite.setTranslateX(posX - (imgWidth/2));
-            //this.sprite.setTranslateY(posY - (imgHeight/2));
+            // this.sprite.setTranslateX(posX - (imgWidth/2));
+            // this.sprite.setTranslateY(posY - (imgHeight/2));
             //
+
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
-            
+
         }
 
         public boolean checkCollision(double posX, double posY) {
-            return (collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(0,0,0, 1)));
+            Color color = new Color(0, 0, 0, 1);
+            return (collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY).equals(color));
         }
     }
 
