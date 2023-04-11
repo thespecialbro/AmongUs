@@ -103,7 +103,7 @@ public class Game2DClean extends Application {
     // start the game scene
     public void initializeScene() {
         crewmate = new Crewmate();
-        crewmate.setPos(500, 500);
+        crewmate.setPos(600, 600);
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
         background = new ImageView(new File(backgroundImage).toURI().toString());
@@ -204,6 +204,8 @@ public class Game2DClean extends Application {
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
 
+            
+
             updateAnim = new AnimationTimer() {
                 long delta;
                 long lastFrameTime;
@@ -216,6 +218,7 @@ public class Game2DClean extends Application {
                     updateFrametime(time);
                     updateFramerate();
                     tick();
+                    //update();
                 }
 
                 public double getFramerate() {
@@ -272,6 +275,12 @@ public class Game2DClean extends Application {
                     return frameRate * 1e9;
                 }
             };
+
+            Platform.runLater(() -> {
+                sprite.setTranslateX((background.getImage().getWidth() / 2) - (imgWidth/2));
+                sprite.setTranslateY((background.getImage().getHeight() / 2) - (imgHeight/2));
+            }
+            );
         }
 
         public void setPos(double x, double y) {
@@ -283,21 +292,16 @@ public class Game2DClean extends Application {
             updateAnim.handle(System.nanoTime());
 
             // set image pos (centered so coords aren't top-left of the image)
-            this.sprite.setTranslateX(posX - (imgWidth/2));
-            this.sprite.setTranslateY(posY - (imgHeight/2));
-
+            //this.sprite.setTranslateX(posX - (imgWidth/2));
+            //this.sprite.setTranslateY(posY - (imgHeight/2));
             //
-
-            // loop at screen edges
-            // if (posX > 800) posX = 0;
-            // if (posY > 500) posY = 0;
-
-            // if(posX < 0) posX = 800;
-            // if(posY < 0) posY = 500;
+            background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
+            background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
+            
         }
 
         public boolean checkCollision(double posX, double posY) {
-            return !(collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(200.0/255, 162.0/255, 200.0/255, 1)));
+            return (collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(0,0,0, 1)));
         }
     }
 
