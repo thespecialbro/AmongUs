@@ -42,18 +42,21 @@ public class Game2DClean extends Application {
 
     private final static String CREWMATE_IMAGE = "assets/amongus.png"; // file with icon for a crewmate
     private final static String CREWMATE_RUNNERS = "assets/amongusRunners.png"; // file with icon for crewmates
-    private static String backgroundImage = "assets/background.jpg"; // default value for debug purposes
-    private static String collideMaskImage = "assets/collision.png"; // default value for debug purposes
+    private static String backgroundPath = "assets/background.jpg"; // default value for debug purposes
+    private static String collisionMaskPath = "assets/collision.png"; // default value for debug purposes
 
     private ImageView collisionMask = null;
     private ImageView background = null;
-    private Label testLabel = new Label();
+    private Label lblFramerate = new Label("<FPS>");
 
     AnimationTimer animTimer = null;
     private long renderCounter = 0;
     boolean goUP, goDOWN, goRIGHT, goLEFT = false;
 
     Crewmate crewmate = null;
+
+    double windowWidth = 1600;
+    double windowHeight = 900;
 
     // main program
     public static void main(String[] _args) {
@@ -92,8 +95,8 @@ public class Game2DClean extends Application {
                 settingsMap.put(s[0], s[1]);
             }
 
-            backgroundImage = String.format("levels/%s/background.png", settingsMap.get("level"));
-            collideMaskImage = String.format("levels/%s/collide_mask.png", settingsMap.get("level"));
+            backgroundPath = String.format("levels/%s/background.png", settingsMap.get("level"));
+            collisionMaskPath = String.format("levels/%s/collide_mask.png", settingsMap.get("level"));
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -103,18 +106,26 @@ public class Game2DClean extends Application {
     // start the game scene
     public void initializeScene() {
         crewmate = new Crewmate();
-        crewmate.setPos(600, 600);
+        crewmate.setPos(1000, 1000);
 
-        collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
-        background = new ImageView(new File(backgroundImage).toURI().toString());
+        collisionMask = new ImageView(new File(collisionMaskPath).toURI().toString());
+        background = new ImageView(new File(backgroundPath).toURI().toString());
+
+        // collisionMask.setScaleX(.5);
+        // collisionMask.setScaleY(.5);
+
+        // background.setScaleX(.5);
+        // background.setScaleY(.5);
         
         root.getChildren().add(background);
         //root.getChildren().add(collisionMask); // debug
         root.getChildren().add(crewmate);
-        root.getChildren().add(testLabel);
+        //root.getChildren().add(lblFramerate);
+
+        //lblframerate.setTe
 
         // display the window
-        scene = new Scene(root, 1600, 900);
+        scene = new Scene(root, windowWidth, windowHeight);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
@@ -124,6 +135,15 @@ public class Game2DClean extends Application {
             @Override
             public void handle(KeyEvent button) {
                 switch(button.getCode()) {
+                    case ESCAPE:
+                        Platform.exit();
+                        System.exit(0);
+                        break;
+
+                    case E:
+                        crewmate.doTask();
+                        break;
+
                     case UP:
                     case W:
                         goUP = true;
@@ -196,6 +216,9 @@ public class Game2DClean extends Application {
         private double imgWidth;
         private double imgHeight;
         private AnimationTimer updateAnim;
+        
+        private int lastDirection = 0;
+        private boolean doingTask = false;
 
         public Crewmate() {
             sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
@@ -218,7 +241,6 @@ public class Game2DClean extends Application {
                     updateFrametime(time);
                     updateFramerate();
                     tick();
-                    //update();
                 }
 
                 public double getFramerate() {
@@ -240,7 +262,7 @@ public class Game2DClean extends Application {
 
                 public void tick() {
                     
-                    double speed = 5;
+                    double speed = 20;
                     double sin45 = Math.sin(Math.PI / 2.0);
 
                     if((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
@@ -258,9 +280,17 @@ public class Game2DClean extends Application {
                     }
                     if(goLEFT) {
                         if(!checkCollision(posX-speed, posY)) posX -= speed;
+                        if(lastDirection == 0) {
+                            sprite.setScaleX(-1);
+                            lastDirection = 1;
+                        }
                     }
                     if(goRIGHT) {
                         if(!checkCollision(posX+speed, posY)) posX += speed;
+                        if(lastDirection != 0) {
+                            sprite.setScaleX(1);
+                            lastDirection = 0;
+                        }
                     }
 
                     
@@ -277,10 +307,21 @@ public class Game2DClean extends Application {
             };
 
             Platform.runLater(() -> {
-                sprite.setTranslateX((background.getImage().getWidth() / 2) - (imgWidth/2));
-                sprite.setTranslateY((background.getImage().getHeight() / 2) - (imgHeight/2));
+                // sprite.setTranslateX((background.getImage().getWidth() / 2) - (imgWidth/2));
+                // sprite.setTranslateY((background.getImage().getHeight() / 2) - (imgHeight/2));
+                
+                sprite.setTranslateX((windowWidth / 2) - (imgWidth/2));
+                sprite.setTranslateY((windowHeight / 2) - (imgHeight/2));
             }
             );
+        }
+
+        public void doTask() {
+            if(!doingTask && (collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(0,0,1, 1)))) {
+                //doingTask = true;
+
+                System.out.println("task");
+            }
         }
 
         public void setPos(double x, double y) {
