@@ -17,8 +17,9 @@ import java.io.*;
 import java.util.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
-
-
+import java.util.stream.Collectors;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
 
 /**
  * AmongUSStarter with JavaFX and Threads
@@ -87,7 +88,7 @@ public class Game2DClean extends Application {
             Scanner settingsReader = new Scanner(new File(SETTINGS));
 
             Map<String, String> settingsMap = new HashMap<String, String>();
-            while(settingsReader.hasNext()) {
+            while (settingsReader.hasNext()) {
                 String[] s = settingsReader.nextLine().split("=");
                 settingsMap.put(s[0], s[1]);
             }
@@ -103,7 +104,7 @@ public class Game2DClean extends Application {
     // start the game scene
     public void initializeScene() {
         crewmate = new Crewmate();
-        crewmate.setPos(600, 600);
+        crewmate.setPos(1000,1000);
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
         background = new ImageView(new File(backgroundImage).toURI().toString());
@@ -112,6 +113,7 @@ public class Game2DClean extends Application {
         //root.getChildren().add(collisionMask); // debug
         root.getChildren().add(crewmate);
         root.getChildren().add(testLabel);
+
 
         // display the window
         scene = new Scene(root, 1600, 900);
@@ -123,7 +125,16 @@ public class Game2DClean extends Application {
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent button) {
-                switch(button.getCode()) {
+
+                switch (button.getCode()) {
+                    case ESCAPE:
+                        Platform.exit();
+                        System.exit(0);
+                        break;
+
+                    case E:
+                        crewmate.doTask();
+                        break;
                     case UP:
                     case W:
                         goUP = true;
@@ -144,16 +155,17 @@ public class Game2DClean extends Application {
                         goRIGHT = true;
                         break;
 
-                    default:;
+                    default:
+                        ;
                 }
-            } 
+            }
         });
 
         // KEY RELEASE
         scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent button) {
-                switch(button.getCode()) {
+                switch (button.getCode()) {
                     case UP:
                     case W:
                         goUP = false;
@@ -174,7 +186,8 @@ public class Game2DClean extends Application {
                         goRIGHT = false;
                         break;
 
-                    default:;
+                    default:
+                        ;
                 }
             }
         });
@@ -197,14 +210,33 @@ public class Game2DClean extends Application {
         private double imgHeight;
         private AnimationTimer updateAnim;
 
+
+        private int lastDirection = 0;
+        private boolean doingTask = false;
+
+        List<Task> tasks = Arrays.asList(
+                new Task("Task 1", new Color(0, 0, 1, 1)),
+                new Task("Task 2", new Color(109.0 / 255.0, 56.0 / 255.0, 1, 1)),
+                new Task("Task 3", new Color(155.0 / 255.0, 73.0 / 255.0, 1, 1)));
+
+        public void doTask() {
+            Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
+            Task task = findTaskByColor(colorAtPosition);
+            if (task != null) {
+                task.showTaskScreen();
+            }
+        }
+
+        private Task findTaskByColor(Color color) {
+            return tasks.stream().filter(task -> task.taskColor.equals(color)).findFirst().orElse(null);
+        }
+
         public Crewmate() {
             sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
             this.getChildren().add(sprite);
 
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
-
-            
 
             updateAnim = new AnimationTimer() {
                 long delta;
@@ -239,31 +271,43 @@ public class Game2DClean extends Application {
                 }
 
                 public void tick() {
-                    
-                    double speed = 5;
+
+                    double speed = 20;
                     double sin45 = Math.sin(Math.PI / 2.0);
 
-                    if((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
+                    if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
                         // todo play animation
                     }
-                    
-                    if((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
+
+                    if ((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
                         speed *= sin45;
                     }
-                    if(goUP) {
-                        if(!checkCollision(posX, posY-speed)) posY -= speed;
+                    if (goUP) {
+                        if (!checkCollision(posX, posY - speed))
+                            posY -= speed;
                     }
-                    if(goDOWN) {
-                        if(!checkCollision(posX, posY+speed)) posY += speed;
-                    }
-                    if(goLEFT) {
-                        if(!checkCollision(posX-speed, posY)) posX -= speed;
-                    }
-                    if(goRIGHT) {
-                        if(!checkCollision(posX+speed, posY)) posX += speed;
+                    if (goDOWN) {
+                        if (!checkCollision(posX, posY + speed))
+                            posY += speed;
                     }
 
-                    
+                    if (goLEFT) {
+                        if (!checkCollision(posX - speed, posY))
+                            posX -= speed;
+                        if (lastDirection == 0) {
+                            sprite.setScaleX(-1);
+                            lastDirection = 1;
+                        }
+                    }
+                    if (goRIGHT) {
+                        if (!checkCollision(posX + speed, posY))
+                            posX += speed;
+                        if (lastDirection != 0) {
+                            sprite.setScaleX(1);
+                            lastDirection = 0;
+                        }
+                    }
+
                 }
 
                 public long getDelta() {
@@ -283,6 +327,7 @@ public class Game2DClean extends Application {
             );
         }
 
+
         public void setPos(double x, double y) {
             this.posX = x;
             this.posY = y;
@@ -292,16 +337,63 @@ public class Game2DClean extends Application {
             updateAnim.handle(System.nanoTime());
 
             // set image pos (centered so coords aren't top-left of the image)
-            //this.sprite.setTranslateX(posX - (imgWidth/2));
-            //this.sprite.setTranslateY(posY - (imgHeight/2));
+            // this.sprite.setTranslateX(posX - (imgWidth/2));
+            // this.sprite.setTranslateY(posY - (imgHeight/2));
             //
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
-            
+
         }
 
         public boolean checkCollision(double posX, double posY) {
-            return (collisionMask.getImage().getPixelReader().getColor((int)posX, (int)posY).equals(new Color(0,0,0, 1)));
+            return (collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY)
+                    .equals(new Color(0, 0, 0, 1)));
+        }
+
+        public void showTaskScreen() {
+            Stage taskStage = new Stage();
+            taskStage.setTitle("Task");
+
+            VBox vbox = new VBox(10);
+            vbox.setPadding(new Insets(10, 10, 10, 10));
+
+            Label taskLabel = new Label("Perform the task here.");
+            Button completeTaskButton = new Button("Complete Task");
+            completeTaskButton.setOnAction(event -> taskStage.close());
+
+            vbox.getChildren().addAll(taskLabel, completeTaskButton);
+
+            Scene taskScene = new Scene(vbox, 300, 200);
+            taskStage.setScene(taskScene);
+            taskStage.show();
+        }
+    }
+
+    class Task {
+        String taskId;
+        Color taskColor;
+
+        public Task(String taskId, Color taskColor) {
+            this.taskId = taskId;
+            this.taskColor = taskColor;
+        }
+
+        public void showTaskScreen() {
+            Stage taskStage = new Stage();
+            taskStage.setTitle("Task: " + taskId);
+
+            VBox vbox = new VBox(10);
+            vbox.setPadding(new Insets(10, 10, 10, 10));
+
+            Label taskLabel = new Label("Perform the task: " + taskId);
+            Button completeTaskButton = new Button("Complete Task");
+            completeTaskButton.setOnAction(event -> taskStage.close());
+
+            vbox.getChildren().addAll(taskLabel, completeTaskButton);
+
+            Scene taskScene = new Scene(vbox, 300, 200);
+            taskStage.setScene(taskScene);
+            taskStage.show();
         }
     }
 
