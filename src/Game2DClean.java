@@ -20,6 +20,7 @@ import javafx.scene.input.KeyEvent;
 import java.util.stream.Collectors;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Insets;
+import javafx.scene.control.ProgressBar;
 
 /**
  * AmongUSStarter with JavaFX and Threads
@@ -112,8 +113,6 @@ public class Game2DClean extends Application {
         root.getChildren().add(background);
         // root.getChildren().add(collisionMask); // debug
         root.getChildren().add(crewmate);
-        
-        root.getChildren().add(testLabel);
 
         // display the window
         scene = new Scene(root, 1600, 900);
@@ -212,23 +211,6 @@ public class Game2DClean extends Application {
         private int lastDirection = 0;
         private boolean doingTask = false;
 
-        List<Task> tasks = Arrays.asList(
-                new Task("Task 1", new Color(0, 0, 1, 1)),
-                new Task("Task 2", new Color(109.0 / 255.0, 56.0 / 255.0, 1, 1)),
-                new Task("Task 3a", new Color(155.0 / 255.0, 73.0 / 255.0, 1, 1)));
-
-        public void doTask() {
-            Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
-            Task task = findTaskByColor(colorAtPosition);
-            if (task != null) {
-                task.showTaskScreen();
-            }
-        }
-
-        private Task findTaskByColor(Color color) {
-            return tasks.stream().filter(task -> task.taskColor.equals(color)).findFirst().orElse(null);
-        }
-
         public Crewmate() {
             sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
             this.getChildren().add(sprite);
@@ -319,9 +301,25 @@ public class Game2DClean extends Application {
             };
 
             Platform.runLater(() -> {
-                sprite.setTranslateX((background.getImage().getWidth() / 2) - (imgWidth / 2));
-                sprite.setTranslateY((background.getImage().getHeight() / 2) - (imgHeight / 2));
+                sprite.setTranslateX((1600 / 2) - (imgWidth / 2));
+                sprite.setTranslateY((900 / 2) - (imgHeight / 2));
             });
+
+        }
+
+        List<forTasks> tasks = Arrays.asList(
+                new Task1(), new Task2());
+
+        public void doTask() {
+            Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
+            forTasks task = findTaskByColor(colorAtPosition);
+            if (task != null) {
+                task.showTaskScreen();
+            }
+        }
+
+        private forTasks findTaskByColor(Color color) {
+            return tasks.stream().filter(task -> task.getTaskColor().equals(color)).findFirst().orElse(null);
         }
 
         public void setPos(double x, double y) {
@@ -376,23 +374,117 @@ public class Game2DClean extends Application {
         }
 
         public void showTaskScreen() {
+
+        }
+    }
+
+    interface forTasks {
+        String getTaskID();
+
+        Color getTaskColor();
+
+        void showTaskScreen();
+    }
+
+    class Task1 implements forTasks {
+        String taskId = "1";
+        Color taskColor = new Color(0, 0, 1, 1);
+        int progressCounter = 0;
+
+        @Override
+        public String getTaskID() {
+            return taskId;
+        }
+
+        @Override
+        public Color getTaskColor() {
+            return taskColor;
+        }
+
+        @Override
+        public void showTaskScreen() {
             Stage taskStage = new Stage();
-            taskStage.setTitle("Task: " + taskId);
+            taskStage.setTitle("Task: " + getTaskID());
 
             VBox vbox = new VBox(10);
             vbox.setPadding(new Insets(10, 10, 10, 10));
 
-            Label taskLabel = new Label("Perform the task: " + taskId);
-            Button completeTaskButton = new Button("Complete Task");
-            completeTaskButton.setOnAction(
+            Button btnFinish = new Button("Finish");
+            btnFinish.setDisable(true);
+            btnFinish.setOnAction(
                     event -> taskStage.close());
 
-            vbox.getChildren().addAll(taskLabel, completeTaskButton);
+            ProgressBar pg = new ProgressBar(0);
+            for (int i = 0; i < 100; i++) {
+                pg.setProgress(i);
+            }
+
+            btnFinish.setDisable(false);
+            vbox.getChildren().addAll(pg, btnFinish);
 
             Scene taskScene = new Scene(vbox, 300, 200);
             taskStage.setScene(taskScene);
             taskStage.show();
         }
+
     }
 
+    class Task2 implements forTasks {
+        String taskId = "1";
+        Color taskColor = new Color(109.0 / 255.0, 56.0 / 255.0, 1, 1);
+        int progressCounter = 0;
+
+        @Override
+        public String getTaskID() {
+            return taskId;
+        }
+
+        @Override
+        public Color getTaskColor() {
+            return taskColor;
+        }
+
+        @Override
+        public void showTaskScreen() {
+            Stage taskStage = new Stage();
+            taskStage.setTitle("Task: " + getTaskID());
+
+            VBox vbox = new VBox(10);
+            vbox.setPadding(new Insets(10, 10, 10, 10));
+
+            Button btnFinish = new Button("Finish");
+            Button btnStart = new Button("Start");
+            btnFinish.setDisable(true);
+            btnFinish.setOnAction(
+                    event -> taskStage.close());
+
+            ProgressBar pg = new ProgressBar(0);
+            btnStart.setOnAction(
+                    event -> {
+                        Platform.runLater(() -> {
+                            try {
+                                double counter = 0;
+                                for(int i = 0; i < 100; i++) {
+                                    Thread.sleep((long) Math.random() * 100);
+                                    pg.setProgress(i / 100);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }); 
+
+                    });
+
+            btnFinish.setDisable(false);
+
+            vbox.getChildren().addAll(pg, btnStart, btnFinish);
+
+
+            
+            Scene taskScene = new Scene(vbox, 300, 200);
+            taskStage.setScene(taskScene);
+            taskStage.show();
+        }
+
+    }
 } // end class Races
