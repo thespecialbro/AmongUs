@@ -56,6 +56,9 @@ public class Game2DClean extends Application {
 
     Crewmate crewmate = null;
 
+    double SCREENWIDTH = 1600;
+    double SCREENHEIGHT = 900;
+
     // main program
     public static void main(String[] _args) {
         args = _args;
@@ -116,7 +119,7 @@ public class Game2DClean extends Application {
 
 
         // display the window
-        scene = new Scene(root, 1600, 900);
+        scene = new Scene(root, SCREENWIDTH, SCREENHEIGHT);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
@@ -193,9 +196,15 @@ public class Game2DClean extends Application {
         });
 
         animTimer = new AnimationTimer() {
+            long lastUpdate = 0;
+            long desiredFrameTime = (long)1e7;
+
             @Override
             public void handle(long now) {
-                crewmate.update();
+                if(now - lastUpdate >= desiredFrameTime) {
+                    crewmate.update();
+                    lastUpdate = now;
+                }
             }
         };
 
@@ -238,91 +247,9 @@ public class Game2DClean extends Application {
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
 
-            updateAnim = new AnimationTimer() {
-                long delta;
-                long lastFrameTime;
-                DoubleProperty framerate = new SimpleDoubleProperty(0);
-
-                @Override
-                public void handle(long time) {
-                    // delta = time - lastFrameTime;
-                    // lastFrameTime = time;
-                    updateFrametime(time);
-                    updateFramerate();
-                    tick();
-                    //update();
-                }
-
-                public double getFramerate() {
-                    return framerate.get();
-                }
-
-                public DoubleProperty framerateProperty() {
-                    return framerate;
-                }
-
-                public void updateFrametime(long nowNano) {
-                    nowNano -= lastFrameTime;
-                    lastFrameTime = nowNano;
-                }
-
-                public void updateFramerate() {
-                    framerate.set(getFramerateHz());
-                }
-
-                public void tick() {
-
-                    double speed = 20;
-                    double sin45 = Math.sin(Math.PI / 2.0);
-
-                    if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
-                        // todo play animation
-                    }
-
-                    if ((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
-                        speed *= sin45;
-                    }
-                    if (goUP) {
-                        if (!checkCollision(posX, posY - speed))
-                            posY -= speed;
-                    }
-                    if (goDOWN) {
-                        if (!checkCollision(posX, posY + speed))
-                            posY += speed;
-                    }
-
-                    if (goLEFT) {
-                        if (!checkCollision(posX - speed, posY))
-                            posX -= speed;
-                        if (lastDirection == 0) {
-                            sprite.setScaleX(-1);
-                            lastDirection = 1;
-                        }
-                    }
-                    if (goRIGHT) {
-                        if (!checkCollision(posX + speed, posY))
-                            posX += speed;
-                        if (lastDirection != 0) {
-                            sprite.setScaleX(1);
-                            lastDirection = 0;
-                        }
-                    }
-
-                }
-
-                public long getDelta() {
-                    return delta;
-                }
-
-                public double getFramerateHz() {
-                    double frameRate = 1.0 / delta;
-                    return frameRate * 1e9;
-                }
-            };
-
             Platform.runLater(() -> {
-                sprite.setTranslateX((background.getImage().getWidth() / 2) - (imgWidth/2));
-                sprite.setTranslateY((background.getImage().getHeight() / 2) - (imgHeight/2));
+                sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth/2));
+                sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight/2));
             }
             );
         }
@@ -334,12 +261,44 @@ public class Game2DClean extends Application {
         }
 
         public void update() {
-            updateAnim.handle(System.nanoTime());
+            //updateAnim.handle(System.nanoTime());
 
-            // set image pos (centered so coords aren't top-left of the image)
-            // this.sprite.setTranslateX(posX - (imgWidth/2));
-            // this.sprite.setTranslateY(posY - (imgHeight/2));
-            //
+            double speed = 20;
+            double sin45 = Math.sin(Math.PI / 2.0);
+
+            if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
+                // todo play animation
+            }
+
+            if ((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
+                speed *= sin45;
+            }
+            if (goUP) {
+                if (!checkCollision(posX, posY - speed))
+                    posY -= speed;
+            }
+            if (goDOWN) {
+                if (!checkCollision(posX, posY + speed))
+                    posY += speed;
+            }
+
+            if (goLEFT) {
+                if (!checkCollision(posX - speed, posY))
+                    posX -= speed;
+                if (lastDirection == 0) {
+                    sprite.setScaleX(-1);
+                    lastDirection = 1;
+                }
+            }
+            if (goRIGHT) {
+                if (!checkCollision(posX + speed, posY))
+                    posX += speed;
+                if (lastDirection != 0) {
+                    sprite.setScaleX(1);
+                    lastDirection = 0;
+                }
+            }
+            // move background to represent player movement
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
 
