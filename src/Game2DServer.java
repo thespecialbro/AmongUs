@@ -104,16 +104,25 @@ public class Game2DServer extends Application {
                 input = new ObjectInputStream(clientSocket.getInputStream());
                 output = new ObjectOutputStream(clientSocket.getOutputStream());
 
+                Player player = null;
+
                 while (true) {
                     Object message = input.readObject();
-                    if(message instanceof String) {
-                        switch((String)message) {
-                            case "":
-                            break;
+                    if(message instanceof Player) {
+                        Player[] visiblePlayers = null;
+                        
+                        
+                        // get player information
+                        if(player != null) {
+                            // determine which other players are visible to the player
+                            // todo look in visibility radius for other players
+                            
                         }
-                    }
+                        player = (Player) message;
+                        GameInfo game = new GameInfo(null, null, player.getPosX(), player.getPosY(), visiblePlayers);
 
-                    //
+                        output.writeObject(game);
+                    }
                 }
             } catch (IOException e) {
                 System.out.println("Error handling client: " + e.getMessage());
