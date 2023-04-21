@@ -1,23 +1,16 @@
 import javafx.application.*;
-import javafx.beans.property.*;
 
-import javafx.event.*;
 import javafx.scene.*;
 import javafx.scene.image.*;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.*;
-import javafx.scene.text.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
 import javafx.stage.*;
-import javafx.geometry.*;
 import javafx.animation.*;
 import java.io.*;
 import java.util.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
-import java.util.stream.Collectors;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Insets;
 
@@ -42,7 +35,7 @@ public class Game2DClean extends Application {
     private static final String SETTINGS = "settings.txt";
 
     private final static String CREWMATE_IMAGE = "assets/amongus.png"; // file with icon for a crewmate
-    private final static String CREWMATE_RUNNERS = "assets/amongusRunners.png"; // file with icon for crewmates
+    // private final static String CREWMATE_RUNNERS = "assets/amongusRunners.png"; // file with icon for crewmates
     private static String backgroundImage = "assets/background.jpg"; // default value for debug purposes
     private static String collideMaskImage = "assets/collision.png"; // default value for debug purposes
 
@@ -51,7 +44,7 @@ public class Game2DClean extends Application {
     private Label testLabel = new Label();
 
     AnimationTimer animTimer = null;
-    private long renderCounter = 0;
+    // private long renderCounter = 0;
     boolean goUP, goDOWN, goRIGHT, goLEFT = false;
 
     Crewmate crewmate = null;
@@ -217,11 +210,10 @@ public class Game2DClean extends Application {
         private ImageView sprite = null;
         private double imgWidth;
         private double imgHeight;
-        private AnimationTimer updateAnim;
 
 
         private int lastDirection = 0;
-        private boolean doingTask = false;
+        // private boolean doingTask = false;
 
         List<Task> tasks = Arrays.asList(
                 new Task("Task 1", new Color(0, 0, 1, 1)),

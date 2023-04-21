@@ -5,6 +5,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -89,8 +91,8 @@ public class Game2DServer extends Application {
     static class ClientHandler extends Thread {
 
         private Socket clientSocket;
-        private Scanner input;
-        private PrintWriter output;
+        private ObjectInputStream input;
+        private ObjectOutputStream output;
 
         public ClientHandler(Socket clientSocket) {
             this.clientSocket = clientSocket;
@@ -99,15 +101,24 @@ public class Game2DServer extends Application {
         @Override
         public void run() {
             try {
-                input = new Scanner(clientSocket.getInputStream());
-                output = new PrintWriter(clientSocket.getOutputStream(), true);
+                input = new ObjectInputStream(clientSocket.getInputStream());
+                output = new ObjectOutputStream(clientSocket.getOutputStream());
 
-                while (input.hasNextLine()) {
-                    String message = input.nextLine();
-                    System.out.println("Client: " + message);
+                while (true) {
+                    Object message = input.readObject();
+                    if(message instanceof String) {
+                        switch((String)message) {
+                            case "":
+                            break;
+                        }
+                    }
+
+                    //
                 }
             } catch (IOException e) {
                 System.out.println("Error handling client: " + e.getMessage());
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             } finally {
                 try {
                     if (input != null) {
