@@ -117,12 +117,22 @@ public class Game2DServer extends Application {
                     Object message = input.readObject();
                     if(message instanceof Player) {
                         Player[] visiblePlayers = null;
+                        ArrayList<Player> otherPlayers = new ArrayList<Player>();
 
                         if(player != null) {
                             // determine which other players are visible to the player
                             // todo look in visibility radius for other players
                             visiblePlayers = new Player[players.size()];
-                            
+                            for(Player otherPlayer : players) {
+                                double distance = calculateDistance(player.getPosX(), player.getPosY(), otherPlayer.getPosX(), otherPlayer.getPosY());
+                                if(distance <= 600) {
+                                    otherPlayers.add(otherPlayer);
+                                }
+                            }
+
+                            for(int i = 0; i <= otherPlayers.size(); i++) {
+                                visiblePlayers = otherPlayers.toArray(new Player[i]);
+                            }
                         }
 
                         // get player information
@@ -151,6 +161,9 @@ public class Game2DServer extends Application {
                     System.out.println("Error closing client resources: " + e.getMessage());
                 }
             }
+        }
+        private double calculateDistance(double x1, double y1, double x2, double y2) {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
         }
     }
 }
