@@ -44,8 +44,8 @@ public class Game2DClean extends Application {
 
     private static final String SETTINGS = "settings.txt";
 
-    private final static String CREWMATE_IMAGE = "assets/amongus.png"; // file with icon for a crewmate
-    private final static String CREWMATE_RUNNERS = "assets/amongusRunners.png"; // file with icon for crewmates
+    private final static String CREWMATE_IMAGE = "assets/student.png"; // file with icon for a crewmate
+    private final static String CREWMATE_RUNNING = "assets/run.gif"; // file with icon for crewmates
     private static String backgroundImage = "assets/background.jpg"; // default value for debug purposes
     private static String collideMaskImage = "assets/collision.png"; // default value for debug purposes
     private static String miniMapImage;
@@ -98,8 +98,8 @@ public class Game2DClean extends Application {
                 settingsMap.put(s[0], s[1]);
             }
 
-            backgroundImage = String.format("levels/%s/background1.png", settingsMap.get("level"));
-            collideMaskImage = String.format("levels/%s/background1.png", settingsMap.get("level"));
+            backgroundImage = String.format("levels/%s/background3.jpg", settingsMap.get("level"));
+            collideMaskImage = String.format("levels/%s/collide_mask2.png", settingsMap.get("level"));
             miniMapImage = String.format("levels/%s/miniMapImage.png", settingsMap.get("level"));
 
         } catch (FileNotFoundException e) {
@@ -301,7 +301,7 @@ public class Game2DClean extends Application {
 
                 public void tick() {
 
-                    double speed = 20;
+                    double speed = 10;
                     double sin45 = Math.sin(Math.PI / 2.0);
 
                     if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
@@ -453,6 +453,7 @@ public class Game2DClean extends Application {
             super(taskColor);
         }
 
+        
         public void showTaskScreen() {
             Stage taskStage = new Stage();
             taskStage.setTitle("Wires Task");
@@ -555,11 +556,12 @@ public class Game2DClean extends Application {
             Label taskLabel = new Label("Perform the upload task: ");
             Button completeTaskButton = new Button("Done");
             completeTaskButton.setDisable(true);
+            Label lblPercent = new Label("0%");
             pg = new ProgressBar(0);
             completeTaskButton.setOnAction(event -> taskStage.close());
 
             fpTop.getChildren().add(taskLabel);
-            fpMid.getChildren().add(pg);
+            fpMid.getChildren().addAll(lblPercent, pg);
             fpBot.getChildren().add(completeTaskButton);
             vbox.getChildren().addAll(fpTop, fpMid, fpBot);
 
@@ -571,7 +573,8 @@ public class Game2DClean extends Application {
                 public void handle(long now) {
                     progress += Math.random() * 0.03;
                     pg.setProgress(progress);
-                    if (pg.getProgress() > 1) {
+                    lblPercent.setText(String.format("%.1f", progress * 100) + "%");
+                    if (pg.getProgress() >= 1) {
                         completeTaskButton.setDisable(false);
                         stop();
                         pg.setProgress(1);
