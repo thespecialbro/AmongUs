@@ -7,14 +7,17 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.ArrayList;
 
 public class Game2DServer extends Application {
 
     private Server server;
+    private static int maxPlayers = 4;
+    private static ArrayList<Player> players = new ArrayList<>();
+    private static String mapName = "newtest";
+    private static String gameID = "12345";
 
     public static void main(String[] args) {
         launch(args);
@@ -48,6 +51,9 @@ public class Game2DServer extends Application {
         private TextArea logTextArea;
         private boolean running;
 
+        
+
+
         public Server(TextArea logTextArea) {
             this.logTextArea = logTextArea;
         }
@@ -63,6 +69,7 @@ public class Game2DServer extends Application {
                     Socket clientSocket = serverSocket.accept();
                     log("New client connected: " + clientSocket.getInetAddress().getHostAddress());
                     new ClientHandler(clientSocket).start();
+                    if(players.size() >= maxPlayers) break; // stop accepting new connections when enough players are present
                 }
             } catch (IOException e) {
                 log("Error starting server: " + e.getMessage());
@@ -110,17 +117,18 @@ public class Game2DServer extends Application {
                     Object message = input.readObject();
                     if(message instanceof Player) {
                         Player[] visiblePlayers = null;
-                        
-                        
-                        // get player information
+
                         if(player != null) {
                             // determine which other players are visible to the player
                             // todo look in visibility radius for other players
+                            visiblePlayers = new Player[players.size()];
                             
                         }
-                        player = (Player) message;
-                        GameInfo game = new GameInfo(null, null, player.getPosX(), player.getPosY(), visiblePlayers);
 
+                        // get player information
+                        player = (Player) message;
+
+                        GameInfo game = new GameInfo(gameID, mapName, player.getPosX(), player.getPosY(), visiblePlayers);
                         output.writeObject(game);
                     }
                 }

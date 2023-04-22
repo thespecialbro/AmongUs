@@ -3,12 +3,12 @@ import java.io.Serializable;
 public class Player implements Serializable{
     private String name;
     private String color;
-    private int posx;
-    private int posy;
+    private double posx;
+    private double posy;
     private boolean isAlive;
     private boolean isImpostor;
 
-    public Player(String name, String color, int posx, int posy) {
+    public Player(String name, String color, double posx, double posy) {
         this.name = name;
         this.color = color;
         this.posx = posx;
@@ -33,19 +33,17 @@ public class Player implements Serializable{
         return color;
     }
 
-    public int getPosX() {
+    public double getPosX() {
         return posx;
     }
 
-    public int getPosY() {
+    public double getPosY() {
         return posy;
     }
-
 
     public boolean isAlive() {
         return isAlive;
     }
-
 
     public boolean isImpostor() {
         return isImpostor;

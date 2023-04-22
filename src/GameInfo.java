@@ -3,11 +3,11 @@ import java.io.Serializable;
 public class GameInfo implements Serializable{
     private String gameID;
     private String mapName;
-    private int posx;
-    private int posy;
+    private double posx;
+    private double posy;
     private Player[] others;
 
-    public GameInfo(String gameID, String mapName, int posx, int posy, Player[] others) {
+    public GameInfo(String gameID, String mapName, double posx, double posy, Player[] others) {
         this.gameID = gameID;
         this.mapName = mapName;
         this.posx = posx;
@@ -23,15 +23,19 @@ public class GameInfo implements Serializable{
         return mapName;
     }
 
-    public int getPosx() {
+    public double getPosx() {
         return posx;
     }
 
-    public int getPosy() {
+    public double getPosy() {
         return posy;
     }
 
     public Player[] getOthers() {
         return others;
+    }
+
+    public String toString() {
+        return String.format("(%.2f %.2f), %d visible", posx, posy, others.length);
     }
 }

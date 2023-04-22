@@ -8,6 +8,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.*;
 import javafx.animation.*;
 import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
@@ -44,13 +46,22 @@ public class Game2DClean extends Application {
     private Label testLabel = new Label();
 
     AnimationTimer animTimer = null;
-    // private long renderCounter = 0;
+    private long renderCounter = 0;
     boolean goUP, goDOWN, goRIGHT, goLEFT = false;
 
     Crewmate crewmate = null;
-
+    
     double SCREENWIDTH = 1600;
     double SCREENHEIGHT = 900;
+    
+    // server stuff
+    Client client = new Client();
+    String ip = "localhost";
+    static final int SERVER_PORT = 5000;
+
+    String playerName = "steve";
+    String playerColor = "red";
+
 
     // main program
     public static void main(String[] _args) {
@@ -188,6 +199,11 @@ public class Game2DClean extends Application {
             }
         });
 
+        
+        doConnect();
+    }
+
+    private void startGame() {
         animTimer = new AnimationTimer() {
             long lastUpdate = 0;
             long desiredFrameTime = (long)1e7;
@@ -196,12 +212,83 @@ public class Game2DClean extends Application {
             public void handle(long now) {
                 if(now - lastUpdate >= desiredFrameTime) {
                     crewmate.update();
+                    renderCounter++;
                     lastUpdate = now;
                 }
             }
         };
 
         animTimer.start();
+    }
+
+    private void doConnect() {
+        // todo
+        client.start();
+    }
+
+    class Client extends Thread {
+        private Socket socket;
+        private ObjectOutputStream output;
+        private ObjectInputStream input;
+        private boolean connected = false;
+
+        @Override
+        public void run() {
+            try {
+                socket = new Socket(ip, SERVER_PORT);
+            
+                output = new ObjectOutputStream(socket.getOutputStream());
+                input = new ObjectInputStream(socket.getInputStream());
+
+                connected = true;
+
+                startGame();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void sendPlayerInfo(Player player) {
+            if(!connected) return;
+            try {
+                output.writeObject(player);
+
+                Object response = input.readObject();
+                // System.out.println(response);
+                if(response instanceof String) {
+                    String msg = (String)response;
+                    switch(msg) {
+                        case "disconnect":
+                        disconnect();
+                        break;
+                    }
+                } else if(response instanceof GameInfo) {
+                    if(renderCounter % 10 == 0) {
+                        System.out.println(response);
+                    }
+                }
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void disconnect() {
+            try {
+                input.close();
+                output.close();
+                socket.close();
+                connected = false;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+        }
+
     }
 
     class Crewmate extends Pane {
@@ -294,6 +381,7 @@ public class Game2DClean extends Application {
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
 
+            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY));
         }
 
         public boolean checkCollision(double posX, double posY) {
