@@ -425,7 +425,7 @@ public class Game2DClean extends Application {
 
                 @Override
                 public void handle(long now) {
-                    progress += Math.random() * 0.03;
+                    progress += Math.random() * 0.001;
                     pg.setProgress(progress);
                     if (pg.getProgress() > 1) {
                         completeTaskButton.setDisable(false);
