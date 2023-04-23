@@ -51,9 +51,6 @@ public class Game2DServer extends Application {
         private TextArea logTextArea;
         private boolean running;
 
-        
-
-
         public Server(TextArea logTextArea) {
             this.logTextArea = logTextArea;
         }
