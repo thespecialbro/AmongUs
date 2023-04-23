@@ -31,6 +31,7 @@ public class Game2DClean extends Application {
     private Stage stage;
     private Scene scene;
     private StackPane root;
+    private StackPane otherPlayersPane;
 
     private static String[] args;
 
@@ -62,7 +63,7 @@ public class Game2DClean extends Application {
     String ip = "localhost";
     static final int SERVER_PORT = 5000;
 
-    String playerName = "steve";
+    String playerName = "awqeb";
     String playerColor = "red";
 
 
@@ -87,6 +88,7 @@ public class Game2DClean extends Application {
 
         // root pane
         root = new StackPane();
+        otherPlayersPane = new StackPane();
 
         loadSettings();
 
@@ -141,6 +143,8 @@ public class Game2DClean extends Application {
         // root.getChildren().add(collisionMask); // debug
         root.getChildren().add(crewmate);
         root.getChildren().add(testLabel);
+
+        root.getChildren().add(otherPlayersPane);
 
         root.getChildren().add(fov);
         root.getChildren().add(miniMap);
@@ -255,6 +259,8 @@ public class Game2DClean extends Application {
         private ObjectInputStream input;
         private boolean connected = false;
 
+        private ArrayList<Crewmate> others = new ArrayList<Crewmate>();
+
         @Override
         public void run() {
             try {
@@ -288,8 +294,38 @@ public class Game2DClean extends Application {
                         break;
                     }
                 } else if(response instanceof GameInfo) {
+                    GameInfo game = (GameInfo)response;
                     if(renderCounter % 10 == 0) {
                         System.out.println(response);
+                        if(game.getOthers().length != others.size()) {
+                            // rebuild player list
+                            for(Crewmate c : others) {
+                                otherPlayersPane.getChildren().remove(c);
+                            }
+
+                            others = new ArrayList<>();
+                            for(Player p : game.getOthers()) {
+                                Crewmate c = new Crewmate();
+                                c.setPos(p.getPosX(), p.getPosY());
+                                others.add(c);
+                                otherPlayersPane.getChildren().add(c);
+
+                                // c.setTranslateX(SCREENWIDTH / 2 + (p.getPosX() - crewmate.getPosX()));
+                                // c.setTranslateY(SCREENHEIGHT / 2 + (p.getPosY() - crewmate.getPosY()));
+                            }
+                        }
+
+                    }
+
+                    // todo figure out why other players are not moving
+                    if(game.getOthers() != null && game.getOthers().length > 0) {
+                        Player o = game.getOthers()[0];
+                        System.out.println(o.getPosX() + ", " + o.getPosY());
+                        for(int i = 0; i < others.size(); i++) {
+                            Player p = game.getOthers()[i];
+                            ((Crewmate)otherPlayersPane.getChildren().get(i)).setPos(p.getPosX(), p.getPosY());
+                            ((Crewmate)otherPlayersPane.getChildren().get(i)).moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
+                        }
                     }
                 }
                 
@@ -320,6 +356,8 @@ public class Game2DClean extends Application {
         private ImageView sprite = null;
         private double imgWidth;
         private double imgHeight;
+
+        private Label lblPos = new Label();
 
 
         private int lastDirection = 0;
@@ -352,23 +390,44 @@ public class Game2DClean extends Application {
 
         public Crewmate() {
             sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
-            this.getChildren().add(sprite);
+            this.getChildren().addAll(sprite, lblPos);
 
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
 
-            Platform.runLater(() -> {
-                sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth/2));
-                sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight/2));
-            }
-            );
+            // Platform.runLater(() -> {
+            //     sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth/2));
+            //     sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight/2));
 
+        
+            // }
+            // );
+            moveSprite(0, 0);
+        }
+
+        public double getPosX() {
+            return posX;
+        }
+
+        public double getPosY() {
+            return posY;
         }
     
 
         public void setPos(double x, double y) {
             this.posX = x;
             this.posY = y;
+
+            lblPos.setText(String.format("%f, %f", x, y));
+        }
+
+        public void moveSprite(double x, double y) {
+            Platform.runLater(() -> {
+                sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth/2) + x);
+                sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight/2) + y);
+                lblPos.setTranslateX((SCREENWIDTH / 2) + x);
+                lblPos.setTranslateY((SCREENHEIGHT / 2) + y);
+            });
         }
 
         public void update() {
@@ -409,13 +468,12 @@ public class Game2DClean extends Application {
                     lastDirection = 0;
                 }
             }
+            lblPos.setText(String.format("%f, %f", posX, posY));
             // move background to represent player movement
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
 
-            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY));
-
-            
+            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY));            
         }
         
         public boolean checkCollision(double posX, double posY) {
