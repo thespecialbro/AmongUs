@@ -1,6 +1,13 @@
 import javafx.application.Application;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -11,12 +18,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.omg.CORBA.BAD_TYPECODE;
+
 public class Game2DServer extends Application {
 
     private Server server;
     private static int maxPlayers = 4;
     private static ArrayList<Player> players = new ArrayList<>();
-    private static String mapName = "newtest";
+    private static String mapName = "movingtest";
     private static String gameID = "12345";
 
     public static void main(String[] args) {
@@ -25,11 +34,44 @@ public class Game2DServer extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        FlowPane fpTop = new FlowPane();
+        FlowPane fpMid = new FlowPane();
+        FlowPane fpBot = new FlowPane();
+
+        fpTop.setAlignment(Pos.CENTER_RIGHT);
+        fpMid.setAlignment(Pos.CENTER);
+        fpBot.setAlignment(Pos.CENTER);
+
+        Button btnSettings = new Button("Settings");
+
+        btnSettings.setOnAction(event -> {
+            openSettings();
+        });
+
+        Label lblIP = new Label("IP: ");
+        TextField tfIP = new TextField();
+
+        Label lblPort = new Label("Port: ");
+        TextField tfPort = new TextField();
+
+        Button btnSet = new Button("Set");
+
+        btnSet.setOnAction(event -> {
+
+        });
+
         TextArea logTextArea = new TextArea();
         logTextArea.setEditable(false);
+        
+        fpTop.getChildren().add(btnSettings);
+        fpMid.getChildren().addAll(lblIP, tfIP, lblPort, tfPort, btnSet);
+        fpBot.getChildren().add(logTextArea);
 
-        VBox root = new VBox(logTextArea);
+        VBox root = new VBox();
+        
+        root.getChildren().addAll(fpTop, fpMid, fpBot);
         Scene scene = new Scene(root, 600, 400);
+
 
         primaryStage.setTitle("Game 2D Server");
         primaryStage.setScene(scene);
@@ -37,6 +79,38 @@ public class Game2DServer extends Application {
 
         server = new Server(logTextArea);
         new Thread(server).start();
+    }
+
+    public void openSettings() {
+        
+        Stage settingsStage = new Stage();
+        FlowPane fp = new FlowPane(Orientation.VERTICAL);
+        fp.setAlignment(Pos.CENTER);
+        settingsStage.setTitle("Enter player name:");
+        VBox vbox = new VBox(50);
+        fp.setVgap(10);
+        
+        Label lblMainV = new Label("Main volume: ");
+        Slider sldMainVolume = new Slider(0, 100, 100);
+        Label lblMusicV = new Label("Music volume: ");
+        Slider sldMusicVolume = new Slider(0, 100, 100);
+        Label lblSFXV = new Label("SFX volume: ");
+        Slider sldSFXVolume = new Slider(0, 100, 100);
+
+
+        
+
+
+        Button btnFinish = new Button("Back");
+
+       
+
+        fp.getChildren().addAll(lblMainV, sldMainVolume, lblMusicV, sldMusicVolume, lblSFXV, sldSFXVolume, btnFinish);
+        vbox.getChildren().add(fp);
+
+        Scene taskScene = new Scene(vbox, 300, 600);
+        settingsStage.setScene(taskScene);
+        settingsStage.showAndWait();
     }
 
     @Override
