@@ -523,7 +523,8 @@ public class Game2DClean extends Application {
         private double imgWidth;
         private double imgHeight;
 
-        private Image runGif = new Image(CREWMATE_RUNNING);
+        private ImageView standImg = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
+        private ImageView runGif = new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
 
         private int facing = 0;
         // private boolean doingTask = false;
@@ -629,8 +630,9 @@ public class Game2DClean extends Application {
             double sin45 = Math.sin(Math.PI / 2.0);
 
             if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
-                // todo play animation
-                sprite = new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
+                sprite.setImage(runGif.getImage()) ; //= new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
+            } else {
+                sprite.setImage(standImg.getImage());
             }
 
             if ((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
