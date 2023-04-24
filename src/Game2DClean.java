@@ -118,7 +118,7 @@ public class Game2DClean extends Application {
     public void initializeScene() {
         crewmate = new Crewmate();
 
-        crewmate.setPos(1000.0,1000.0);
+        crewmate.setPos(1500.0,4600.0);
 
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
@@ -153,6 +153,30 @@ public class Game2DClean extends Application {
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
+
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            // Do whatever you want
+            SCREENWIDTH = newVal.doubleValue();
+            if(crewmate != null) {
+                crewmate.moveSprite(0, 0);
+            }
+
+            for(int i = 0; i < otherPlayersPane.getChildren().size(); i++) {
+                Crewmate c = (Crewmate) otherPlayersPane.getChildren().get(i);
+
+                c.moveSprite(c.getPosX(), c.getPosY());
+            }
+
+            
+        });
+        
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            // Do whatever you want
+            SCREENHEIGHT = newVal.doubleValue();
+            if(crewmate != null) {
+                crewmate.moveSprite(0, 0);
+            }
+        });
 
         // KEY PRESS
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -384,18 +408,11 @@ public class Game2DClean extends Application {
 
         public Crewmate() {
             sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
-            this.getChildren().addAll(sprite, lblPos);
+            this.getChildren().add(sprite);
 
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
 
-            // Platform.runLater(() -> {
-            //     sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth/2));
-            //     sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight/2));
-
-        
-            // }
-            // );
             moveSprite(0, 0);
         }
 
