@@ -294,9 +294,9 @@ public class Game2DClean extends Application {
                         break;
                     }
                 } else if(response instanceof GameInfo) {
+                    // get game info from server
                     GameInfo game = (GameInfo)response;
-                    if(renderCounter % 10 == 0) {
-                        System.out.println(response);
+                    // if(renderCounter % 10 == 0) {
                         if(game.getOthers().length != others.size()) {
                             // rebuild player list
                             for(Crewmate c : others) {
@@ -309,22 +309,16 @@ public class Game2DClean extends Application {
                                 c.setPos(p.getPosX(), p.getPosY());
                                 others.add(c);
                                 otherPlayersPane.getChildren().add(c);
-
-                                // c.setTranslateX(SCREENWIDTH / 2 + (p.getPosX() - crewmate.getPosX()));
-                                // c.setTranslateY(SCREENHEIGHT / 2 + (p.getPosY() - crewmate.getPosY()));
                             }
                         }
+                    // }
 
-                    }
-
-                    // todo figure out why other players are not moving
                     if(game.getOthers() != null && game.getOthers().length > 0) {
-                        Player o = game.getOthers()[0];
-                        System.out.println(o.getPosX() + ", " + o.getPosY());
                         for(int i = 0; i < others.size(); i++) {
                             Player p = game.getOthers()[i];
                             ((Crewmate)otherPlayersPane.getChildren().get(i)).setPos(p.getPosX(), p.getPosY());
                             ((Crewmate)otherPlayersPane.getChildren().get(i)).moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
+                            ((Crewmate)otherPlayersPane.getChildren().get(i)).setFacing(p.getFacing());
                         }
                     }
                 }
@@ -360,7 +354,7 @@ public class Game2DClean extends Application {
         private Label lblPos = new Label();
 
 
-        private int lastDirection = 0;
+        private int facing = 0;
         // private boolean doingTask = false;
 
         List<Task> tasks = Arrays.asList(
@@ -430,6 +424,15 @@ public class Game2DClean extends Application {
             });
         }
 
+        public void setFacing(int direction) {
+            facing = direction;
+            if (facing == 0) {
+                sprite.setScaleX(1);
+            } else {
+                sprite.setScaleX(-1);
+            }
+        }
+
         public void update() {
             //updateAnim.handle(System.nanoTime());
 
@@ -455,17 +458,17 @@ public class Game2DClean extends Application {
             if (goLEFT) {
                 if (!checkCollision(posX - speed, posY))
                     posX -= speed;
-                if (lastDirection == 0) {
+                if (facing == 0) {
                     sprite.setScaleX(-1);
-                    lastDirection = 1;
+                    facing = 1;
                 }
             }
             if (goRIGHT) {
                 if (!checkCollision(posX + speed, posY))
                     posX += speed;
-                if (lastDirection != 0) {
+                if (facing != 0) {
                     sprite.setScaleX(1);
-                    lastDirection = 0;
+                    facing = 0;
                 }
             }
             lblPos.setText(String.format("%f, %f", posX, posY));
@@ -473,7 +476,7 @@ public class Game2DClean extends Application {
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
 
-            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY));            
+            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY, facing));            
         }
         
         public boolean checkCollision(double posX, double posY) {

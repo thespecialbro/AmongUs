@@ -134,8 +134,6 @@ public class Game2DServer extends Application {
                                     // otherPlayers.add(otherPlayer);
                                 }
                             }
-                            
-                            
                         }
                         players.put(id, out);
                         visiblePlayers = new Player[otherPlayers.size()];
@@ -143,7 +141,6 @@ public class Game2DServer extends Application {
                             visiblePlayers[i] = otherPlayers.get(i);
                         }
 
-                        // get player information
                         player = out;
 
                         GameInfo game = new GameInfo(gameID, mapName, player.getPosX(), player.getPosY(), visiblePlayers);

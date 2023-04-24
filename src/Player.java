@@ -8,12 +8,14 @@ public class Player implements Serializable {
     private boolean isAlive;
     private boolean isImpostor;
     private int id;
+    private int facing;
 
-    public Player(String name, String color, double posx, double posy) {
+    public Player(String name, String color, double posx, double posy, int facing) {
         this.name = name;
         this.color = color;
         this.posx = posx;
         this.posy = posy;
+        this.facing = facing;
     }
 
 
@@ -53,5 +55,9 @@ public class Player implements Serializable {
 
     public boolean isImpostor() {
         return isImpostor;
+    }
+
+    public int getFacing() {
+        return facing;
     }
 }
