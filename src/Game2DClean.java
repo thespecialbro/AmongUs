@@ -780,10 +780,13 @@ public class Game2DClean extends Application {
             FlowPane fpTop = new FlowPane();
             FlowPane fpMid = new FlowPane();
             FlowPane fpBot = new FlowPane();
+            FlowPane fpInfo = new FlowPane();
             fpTop.setAlignment(Pos.CENTER);
             fpMid.setAlignment(Pos.CENTER);
             fpBot.setAlignment(Pos.CENTER);
+            fpInfo.setAlignment(Pos.CENTER_RIGHT);
             taskStage.setTitle("Login task");
+            Label lblInfo = new Label("oqwck2");
             VBox vbox = new VBox(10);
 
             Label lblName = new Label("Enter name: ");
@@ -791,36 +794,25 @@ public class Game2DClean extends Application {
             Label lblPassword = new Label("Enter password: ");
             TextField tfPassword = new TextField();
             Button completeTaskButton = new Button("Done");
-            completeTaskButton.setDisable(true);
             pg = new ProgressBar(0);
-            completeTaskButton.setOnAction(event -> taskStage.close());
+            completeTaskButton.setOnAction(event -> {
+                if(!tfName.getText().equals(" ") || !tfPassword.getText().equals(" ")) {
+                    if(tfName.getText().equals(playerName) && tfPassword.getText().equals(lblInfo.getText()) )
+                    taskStage.close();
+                }
+            });
 
             fpTop.getChildren().addAll(lblName, tfName);
             fpMid.getChildren().addAll(lblPassword, tfPassword);
             fpBot.getChildren().add(completeTaskButton);
-            vbox.getChildren().addAll(fpTop, fpMid, fpBot);
+            fpInfo.getChildren().add(lblInfo);
+            vbox.getChildren().addAll(fpTop, fpMid, fpBot, fpInfo);
 
-            AnimationTimer progTime = new AnimationTimer() {
-
-                double progress = 0;
-
-                @Override
-                public void handle(long now) {
-                    progress += Math.random() * 0.001;
-                    pg.setProgress(progress);
-                    if (pg.getProgress() > 1) {
-                        completeTaskButton.setDisable(false);
-                        stop();
-                        pg.setProgress(1);
-
-                    }
-                }
-            };
+         
             Scene taskScene = new Scene(vbox, 300, 200);
             taskStage.setScene(taskScene);
             taskStage.show();
 
-            progTime.start();
         }
     }
 
@@ -904,11 +896,9 @@ public class Game2DClean extends Application {
             FlowPane fpTop = new FlowPane();
             FlowPane fpMid = new FlowPane();
             FlowPane fpBot = new FlowPane();
-            FlowPane fpInfo = new FlowPane();
             fpTop.setAlignment(Pos.CENTER);
             fpMid.setAlignment(Pos.CENTER);
             fpBot.setAlignment(Pos.CENTER);
-            fpBot.setAlignment(Pos.CENTER_RIGHT);
             nameStage.setTitle("Enter player name:");
             VBox vbox = new VBox(10);
 
@@ -918,7 +908,6 @@ public class Game2DClean extends Application {
             TextField tfPassword = new TextField();
             Button btnFinish = new Button("Finish");
 
-            Label lblInfo = new Label("oqwck2");
 
             btnFinish.setOnAction(event -> {
                 if (tfName.getText().equals("")) {
@@ -931,7 +920,6 @@ public class Game2DClean extends Application {
             fpTop.getChildren().addAll(lblName, tfName);
             fpMid.getChildren().addAll(lblPassword, tfPassword);
             fpBot.getChildren().add(btnFinish);
-            fpInfo.getChildren().add(lblInfo);
             vbox.getChildren().addAll(fpTop, fpMid, fpBot);
 
             Scene taskScene = new Scene(vbox, 300, 200);
