@@ -63,7 +63,7 @@ public class Game2DClean extends Application {
     String ip = "localhost";
     static final int SERVER_PORT = 5000;
 
-    String playerName = "awqeb";
+    String playerName = "sadfgfhg";
     String playerColor = "red";
 
 
