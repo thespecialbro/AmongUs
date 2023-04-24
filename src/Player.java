@@ -1,29 +1,37 @@
 import java.io.Serializable;
 
-public class Player implements Serializable{
+public class Player implements Serializable {
     private String name;
     private String color;
     private double posx;
     private double posy;
     private boolean isAlive;
     private boolean isImpostor;
+    private int id;
+    private int facing;
 
-    public Player(String name, String color, double posx, double posy) {
+    public Player(String name, String color, double posx, double posy, int facing) {
         this.name = name;
         this.color = color;
         this.posx = posx;
         this.posy = posy;
+        this.facing = facing;
     }
 
 
     public Player(String name, String color, boolean isAlive, boolean isImpostor) {
+
         this.name = name;
         this.color = color;
         this.isAlive = isAlive;
         this.isImpostor = isImpostor;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
 
+    public int getId() { return id; }
 
     public String getName() {
         return name;
@@ -47,5 +55,9 @@ public class Player implements Serializable{
 
     public boolean isImpostor() {
         return isImpostor;
+    }
+
+    public int getFacing() {
+        return facing;
     }
 }

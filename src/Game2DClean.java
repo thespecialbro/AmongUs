@@ -39,6 +39,7 @@ public class Game2DClean extends Application {
     private Stage stage;
     private Scene scene;
     private StackPane root;
+    private StackPane otherPlayersPane;
 
     private static String[] args;
 
@@ -72,7 +73,7 @@ public class Game2DClean extends Application {
     String ip = "localhost";
     static final int SERVER_PORT = 5000;
 
-    String playerName = "steve";
+    String playerName = "sadfgfhg";
     String playerColor = "red";
 
     // main program
@@ -96,6 +97,7 @@ public class Game2DClean extends Application {
 
         // root pane
         root = new StackPane();
+        otherPlayersPane = new StackPane();
 
         loadSettings();
 
@@ -243,7 +245,8 @@ public class Game2DClean extends Application {
     public void initializeScene() {
         crewmate = new Crewmate();
 
-        crewmate.setPos(1000, 1000);
+        crewmate.setPos(1500.0,4600.0);
+
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
         background = new ImageView(new File(backgroundImage).toURI().toString());
@@ -282,6 +285,8 @@ public class Game2DClean extends Application {
         root.getChildren().add(crewmate);
         root.getChildren().add(lblName);
 
+        root.getChildren().add(otherPlayersPane);
+
         root.getChildren().add(fov);
         root.getChildren().add(miniMap);
         root.getChildren().add(pgTasks);
@@ -290,6 +295,30 @@ public class Game2DClean extends Application {
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
+
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            // Do whatever you want
+            SCREENWIDTH = newVal.doubleValue();
+            if(crewmate != null) {
+                crewmate.moveSprite(0, 0);
+            }
+
+            for(int i = 0; i < otherPlayersPane.getChildren().size(); i++) {
+                Crewmate c = (Crewmate) otherPlayersPane.getChildren().get(i);
+
+                c.moveSprite(c.getPosX(), c.getPosY());
+            }
+
+            
+        });
+        
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            // Do whatever you want
+            SCREENHEIGHT = newVal.doubleValue();
+            if(crewmate != null) {
+                crewmate.moveSprite(0, 0);
+            }
+        });
 
         // KEY PRESS
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -400,6 +429,8 @@ public class Game2DClean extends Application {
         private ObjectInputStream input;
         private boolean connected = false;
 
+        private ArrayList<Crewmate> others = new ArrayList<Crewmate>();
+
         @Override
         public void run() {
             try {
@@ -430,8 +461,36 @@ public class Game2DClean extends Application {
                     String msg = (String) response;
                     switch (msg) {
                         case "disconnect":
-                            disconnect();
-                            break;
+                        disconnect();
+                        break;
+                    }
+                } else if(response instanceof GameInfo) {
+                    // get game info from server
+                    GameInfo game = (GameInfo)response;
+                    // if(renderCounter % 10 == 0) {
+                        if(game.getOthers().length != others.size()) {
+                            // rebuild player list
+                            for(Crewmate c : others) {
+                                otherPlayersPane.getChildren().remove(c);
+                            }
+
+                            others = new ArrayList<>();
+                            for(Player p : game.getOthers()) {
+                                Crewmate c = new Crewmate();
+                                c.setPos(p.getPosX(), p.getPosY());
+                                others.add(c);
+                                otherPlayersPane.getChildren().add(c);
+                            }
+                        }
+                    // }
+
+                    if(game.getOthers() != null && game.getOthers().length > 0) {
+                        for(int i = 0; i < others.size(); i++) {
+                            Player p = game.getOthers()[i];
+                            ((Crewmate)otherPlayersPane.getChildren().get(i)).setPos(p.getPosX(), p.getPosY());
+                            ((Crewmate)otherPlayersPane.getChildren().get(i)).moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
+                            ((Crewmate)otherPlayersPane.getChildren().get(i)).setFacing(p.getFacing());
+                        }
                     }
                 } else if (response instanceof GameInfo) {
 
@@ -466,7 +525,7 @@ public class Game2DClean extends Application {
 
         private Image runGif = new Image(CREWMATE_RUNNING);
 
-        private int lastDirection = 0;
+        private int facing = 0;
         // private boolean doingTask = false;
 
         List<Task> tasks = Arrays.asList(
@@ -524,16 +583,40 @@ public class Game2DClean extends Application {
             imgWidth = sprite.getImage().getWidth();
             imgHeight = sprite.getImage().getHeight();
 
-            Platform.runLater(() -> {
-                sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth / 2));
-                sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight / 2));
-            });
+            moveSprite(0, 0);
+        }
 
+        public double getPosX() {
+            return posX;
+        }
+
+        public double getPosY() {
+            return posY;
         }
 
         public void setPos(double x, double y) {
             this.posX = x;
             this.posY = y;
+
+            // lblPos.setText(String.format("%f, %f", x, y));
+        }
+
+        public void moveSprite(double x, double y) {
+            Platform.runLater(() -> {
+                sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth/2) + x);
+                sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight/2) + y);
+                // lblPos.setTranslateX((SCREENWIDTH / 2) + x);
+                // lblPos.setTranslateY((SCREENHEIGHT / 2) + y);
+            });
+        }
+
+        public void setFacing(int direction) {
+            facing = direction;
+            if (facing == 0) {
+                sprite.setScaleX(1);
+            } else {
+                sprite.setScaleX(-1);
+            }
         }
 
         
@@ -565,25 +648,25 @@ public class Game2DClean extends Application {
             if (goLEFT) {
                 if (!checkCollision(posX - speed, posY))
                     posX -= speed;
-                if (lastDirection == 0) {
+                if (facing == 0) {
                     sprite.setScaleX(-1);
-                    lastDirection = 1;
+                    facing = 1;
                 }
             }
             if (goRIGHT) {
                 if (!checkCollision(posX + speed, posY))
                     posX += speed;
-                if (lastDirection != 0) {
+                if (facing != 0) {
                     sprite.setScaleX(1);
-                    lastDirection = 0;
+                    facing = 0;
                 }
             }
+            // lblPos.setText(String.format("%f, %f", posX, posY));
             // move background to represent player movement
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
 
-            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY));
-
+            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY, facing));            
         }
 
         public boolean checkCollision(double posX, double posY) {

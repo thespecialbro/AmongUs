@@ -36,6 +36,6 @@ public class GameInfo implements Serializable{
     }
 
     public String toString() {
-        return String.format("(%.2f %.2f), %d visible", posx, posy, others.length);
+        return String.format("(%.2f %.2f), %d visible", posx, posy, others!=null ? others.length : 0);
     }
 }
