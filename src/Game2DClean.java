@@ -237,7 +237,7 @@ public class Game2DClean extends Application {
     public void initializeScene() {
         crewmate = new Crewmate();
 
-        crewmate.setPos(1000.0, 1000.0);
+        crewmate.setPos(1000, 1000);
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
         background = new ImageView(new File(backgroundImage).toURI().toString());
@@ -449,9 +449,10 @@ public class Game2DClean extends Application {
         // private boolean doingTask = false;
 
         List<Task> tasks = Arrays.asList(
-                new Task(new Color(0, 0, 1, 1)),
-                new Task(new Color(109.0 / 255.0, 56.0 / 255.0, 1, 1)),
-                new Task(new Color(155.0 / 255.0, 73.0 / 255.0, 1, 1)));
+                new Task1(new Color(0, 0, 1, 1)),
+                new Task2(new Color(109.0 / 255.0, 56.0 / 255.0, 1, 1)),
+                new Task3(new Color(155.0 / 255.0, 116.0 / 255.0, 1, 1)),
+                new Task4(new Color(155.0 / 255.0, 73.0 / 255.0, 1, 1)));
 
         public void doTask() {
             Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
@@ -472,6 +473,16 @@ public class Game2DClean extends Application {
 
         private Task findTaskByColor(Color color) {
             return tasks.stream().filter(task -> task.taskColor.equals(color)).findFirst().orElse(null);
+        }
+
+        public void doVent() {
+            if(findVent()) {
+            }
+        }
+
+        public boolean findVent() {
+            Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
+            return colorAtPosition == new Color(1, 0, 0, 1);
         }
 
         public Crewmate() {
@@ -636,7 +647,7 @@ public class Game2DClean extends Application {
             gridPane.add(completeTaskButton, 10, 8);
             Scene taskScene = new Scene(gridPane, 340, 340);
             taskStage.setScene(taskScene);
-            taskStage.show();
+            taskStage.showAndWait();
 
             for (int i = 0; i < 4; i++) {
                 Circle leftCircle = new Circle(25, colors1[i]);
@@ -737,10 +748,67 @@ public class Game2DClean extends Application {
 
                 @Override
                 public void handle(long now) {
-                    progress += Math.random() * 0.03;
+                    progress += Math.random() * 0.001;
                     pg.setProgress(progress);
                     lblPercent.setText(String.format("%.1f", progress * 100) + "%");
                     if (pg.getProgress() >= 1) {
+                        completeTaskButton.setDisable(false);
+                        stop();
+                        pg.setProgress(1);
+
+                    }
+                }
+            };
+            Scene taskScene = new Scene(vbox, 300, 200);
+            taskStage.setScene(taskScene);
+            taskStage.showAndWait();
+
+            progTime.start();
+        }
+    }
+
+    class Task4 extends Task {
+        Color taskColor;
+        ProgressBar pg;
+
+        public Task4(Color taskColor) {
+            super(taskColor);
+        }
+
+        public void showTaskScreen() {
+            Stage taskStage = new Stage();
+            FlowPane fpTop = new FlowPane();
+            FlowPane fpMid = new FlowPane();
+            FlowPane fpBot = new FlowPane();
+            fpTop.setAlignment(Pos.CENTER);
+            fpMid.setAlignment(Pos.CENTER);
+            fpBot.setAlignment(Pos.CENTER);
+            taskStage.setTitle("Login task");
+            VBox vbox = new VBox(10);
+
+            Label lblName = new Label("Enter name: ");
+            TextField tfName = new TextField();
+            Label lblPassword = new Label("Enter password: ");
+            TextField tfPassword = new TextField();
+            Button completeTaskButton = new Button("Done");
+            completeTaskButton.setDisable(true);
+            pg = new ProgressBar(0);
+            completeTaskButton.setOnAction(event -> taskStage.close());
+
+            fpTop.getChildren().addAll(lblName, tfName);
+            fpMid.getChildren().addAll(lblPassword, tfPassword);
+            fpBot.getChildren().add(completeTaskButton);
+            vbox.getChildren().addAll(fpTop, fpMid, fpBot);
+
+            AnimationTimer progTime = new AnimationTimer() {
+
+                double progress = 0;
+
+                @Override
+                public void handle(long now) {
+                    progress += Math.random() * 0.001;
+                    pg.setProgress(progress);
+                    if (pg.getProgress() > 1) {
                         completeTaskButton.setDisable(false);
                         stop();
                         pg.setProgress(1);
@@ -818,7 +886,7 @@ public class Game2DClean extends Application {
 
             Scene taskScene = new Scene(vbox, 800, 400);
             taskStage.setScene(taskScene);
-            taskStage.show();
+            taskStage.showAndWait();
         }
     }
 
@@ -836,15 +904,21 @@ public class Game2DClean extends Application {
             FlowPane fpTop = new FlowPane();
             FlowPane fpMid = new FlowPane();
             FlowPane fpBot = new FlowPane();
+            FlowPane fpInfo = new FlowPane();
             fpTop.setAlignment(Pos.CENTER);
             fpMid.setAlignment(Pos.CENTER);
             fpBot.setAlignment(Pos.CENTER);
+            fpBot.setAlignment(Pos.CENTER_RIGHT);
             nameStage.setTitle("Enter player name:");
             VBox vbox = new VBox(10);
 
             Label lblName = new Label("Enter name: ");
             TextField tfName = new TextField();
+            Label lblPassword = new Label("Enter name: ");
+            TextField tfPassword = new TextField();
             Button btnFinish = new Button("Finish");
+
+            Label lblInfo = new Label("oqwck2");
 
             btnFinish.setOnAction(event -> {
                 if (tfName.getText().equals("")) {
@@ -854,14 +928,15 @@ public class Game2DClean extends Application {
 
             });
 
-            fpTop.getChildren().add(lblName);
-            fpMid.getChildren().add(tfName);
+            fpTop.getChildren().addAll(lblName, tfName);
+            fpMid.getChildren().addAll(lblPassword, tfPassword);
             fpBot.getChildren().add(btnFinish);
+            fpInfo.getChildren().add(lblInfo);
             vbox.getChildren().addAll(fpTop, fpMid, fpBot);
 
             Scene taskScene = new Scene(vbox, 300, 200);
             nameStage.setScene(taskScene);
-            nameStage.show();
+            nameStage.showAndWait();
 
         }
     }
