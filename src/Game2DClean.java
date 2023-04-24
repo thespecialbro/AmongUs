@@ -5,6 +5,7 @@ import javafx.scene.*;
 import javafx.scene.image.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.media.VideoTrack;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
@@ -16,6 +17,8 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 import javax.xml.stream.events.Namespace;
+
+import org.w3c.dom.ranges.Range;
 
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
@@ -51,6 +54,9 @@ public class Game2DClean extends Application {
     private ImageView background = null;
     private ImageView miniMap = null;
     private Label testLabel = new Label();
+
+    private int taskCounter = 0;
+    private ProgressBar pgTasks = null;
 
     AnimationTimer animTimer = null;
     private long renderCounter = 0;
@@ -226,7 +232,7 @@ public class Game2DClean extends Application {
 
             backgroundImage = String.format("levels/%s/background3.jpg", settingsMap.get("level"));
             collideMaskImage = String.format("levels/%s/collide_mask2.png", settingsMap.get("level"));
-            miniMapImage = String.format("levels/%s/miniMapImage.png", settingsMap.get("level"));
+            miniMapImage = String.format("levels/%s/finalMiniMap.jpg", settingsMap.get("level"));
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -245,7 +251,7 @@ public class Game2DClean extends Application {
 
         Platform.runLater(() -> {
             miniMap.setTranslateX(-1400 / 2);
-            miniMap.setTranslateY(-700 / 2);
+            miniMap.setTranslateY(-780 / 2);
         });
 
         Circle fov = new Circle();
@@ -264,6 +270,13 @@ public class Game2DClean extends Application {
             lblName.setTranslateX(-10);
         });
 
+        pgTasks = new ProgressBar(0);
+
+        Platform.runLater(() -> {
+            pgTasks.setTranslateY(-440);
+            pgTasks.setTranslateX(0);
+        });
+
         root.getChildren().add(background);
         // root.getChildren().add(collisionMask); // debug
         root.getChildren().add(crewmate);
@@ -271,6 +284,7 @@ public class Game2DClean extends Application {
 
         root.getChildren().add(fov);
         root.getChildren().add(miniMap);
+        root.getChildren().add(pgTasks);
         // display the window
         scene = new Scene(root, SCREENWIDTH, SCREENHEIGHT);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
@@ -291,6 +305,7 @@ public class Game2DClean extends Application {
                     case E:
                         crewmate.doTask();
                         crewmate.openChat();
+                        crewmate.doVent();
                         break;
                     case UP:
                     case W:
@@ -363,6 +378,9 @@ public class Game2DClean extends Application {
                     crewmate.update();
                     renderCounter++;
                     lastUpdate = now;
+                    if(taskCounter == 4) {
+                        pgTasks.setProgress(100);
+                    }
                 }
             }
         };
@@ -375,6 +393,7 @@ public class Game2DClean extends Application {
         client.start();
     }
 
+    
     class Client extends Thread {
         private Socket socket;
         private ObjectOutputStream output;
@@ -445,6 +464,8 @@ public class Game2DClean extends Application {
         private double imgWidth;
         private double imgHeight;
 
+        private Image runGif = new Image(CREWMATE_RUNNING);
+
         private int lastDirection = 0;
         // private boolean doingTask = false;
 
@@ -476,13 +497,24 @@ public class Game2DClean extends Application {
         }
 
         public void doVent() {
-            if(findVent()) {
+            if (findVent()) {
+                if(posX > 2030 && posX < 2500 && posY > 2900 && posY < 3260) {
+                    Platform.runLater(() -> {
+                        crewmate.setPos(7030, 3700);
+                    });
+                }
+                
+                if(posX > 6900 && posX < 7300 && posY > 3500 && posY < 4000) {
+                    Platform.runLater(() -> {
+                        crewmate.setPos(2200, 3000);
+                    });
+                }
             }
         }
 
         public boolean findVent() {
             Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
-            return colorAtPosition == new Color(1, 0, 0, 1);
+            return colorAtPosition.equals(new Color(1, 0, 0, 1));
         }
 
         public Crewmate() {
@@ -504,6 +536,9 @@ public class Game2DClean extends Application {
             this.posY = y;
         }
 
+        
+
+
         public void update() {
             // updateAnim.handle(System.nanoTime());
 
@@ -512,6 +547,7 @@ public class Game2DClean extends Application {
 
             if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
                 // todo play animation
+                sprite = new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
             }
 
             if ((goUP ^ goDOWN) && (goLEFT ^ goRIGHT)) { // if moving diagonally
@@ -590,7 +626,10 @@ public class Game2DClean extends Application {
             Button completeTaskButton = new Button("Done");
             completeTaskButton.setDisable(true);
             pg = new ProgressBar(0);
-            completeTaskButton.setOnAction(event -> taskStage.close());
+            completeTaskButton.setOnAction(event -> {
+                taskCounter++;
+                taskStage.close();
+            });
 
             fpTop.getChildren().add(taskLabel);
             fpMid.getChildren().add(pg);
@@ -635,14 +674,16 @@ public class Game2DClean extends Application {
             Stage taskStage = new Stage();
             taskStage.setTitle("Wires Task");
             Button completeTaskButton = new Button("Done");
-            completeTaskButton.setDisable(true);
-            completeTaskButton.setOnAction(event -> taskStage.close());
+            completeTaskButton.setDisable(false);
+            completeTaskButton.setOnAction(event -> {
+                taskCounter++;
+                taskStage.close();
+            });
             GridPane gridPane = new GridPane();
             gridPane.setHgap(10);
             gridPane.setVgap(10);
 
-            Color[] colors1 = { Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW };
-            Color[] colors2 = { Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW };
+            Color[] colors = { Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW };
 
             gridPane.add(completeTaskButton, 10, 8);
             Scene taskScene = new Scene(gridPane, 340, 340);
@@ -650,8 +691,8 @@ public class Game2DClean extends Application {
             taskStage.showAndWait();
 
             for (int i = 0; i < 4; i++) {
-                Circle leftCircle = new Circle(25, colors1[i]);
-                Circle rightCircle = new Circle(25, colors2[i]);
+                Circle leftCircle = new Circle(25, colors[i]);
+                Circle rightCircle = new Circle(25, colors[i]);
                 leftCircle.setStroke(Color.BLACK);
                 rightCircle.setStroke(Color.BLACK);
 
@@ -732,10 +773,12 @@ public class Game2DClean extends Application {
 
             Label taskLabel = new Label("Perform the upload task: ");
             Button completeTaskButton = new Button("Done");
-            completeTaskButton.setDisable(true);
             Label lblPercent = new Label("0%");
             pg = new ProgressBar(0);
-            completeTaskButton.setOnAction(event -> taskStage.close());
+            completeTaskButton.setOnAction(event -> {
+                taskCounter++;
+                taskStage.close();
+            });
 
             fpTop.getChildren().add(taskLabel);
             fpMid.getChildren().addAll(lblPercent, pg);
@@ -796,9 +839,11 @@ public class Game2DClean extends Application {
             Button completeTaskButton = new Button("Done");
             pg = new ProgressBar(0);
             completeTaskButton.setOnAction(event -> {
-                if(!tfName.getText().equals(" ") || !tfPassword.getText().equals(" ")) {
-                    if(tfName.getText().equals(playerName) && tfPassword.getText().equals(lblInfo.getText()) )
-                    taskStage.close();
+                if (!tfName.getText().equals(" ") || !tfPassword.getText().equals(" ")) {
+                    if (tfName.getText().equals(playerName) && tfPassword.getText().equals(lblInfo.getText())) {
+                        taskCounter++;
+                        taskStage.close();
+                    }
                 }
             });
 
@@ -808,7 +853,6 @@ public class Game2DClean extends Application {
             fpInfo.getChildren().add(lblInfo);
             vbox.getChildren().addAll(fpTop, fpMid, fpBot, fpInfo);
 
-         
             Scene taskScene = new Scene(vbox, 300, 200);
             taskStage.setScene(taskScene);
             taskStage.show();
@@ -907,7 +951,6 @@ public class Game2DClean extends Application {
             Label lblPassword = new Label("Enter name: ");
             TextField tfPassword = new TextField();
             Button btnFinish = new Button("Finish");
-
 
             btnFinish.setOnAction(event -> {
                 if (tfName.getText().equals("")) {
