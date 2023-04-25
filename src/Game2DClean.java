@@ -630,7 +630,7 @@ public class Game2DClean extends Application {
             double sin45 = Math.sin(Math.PI / 2.0);
 
             if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
-                sprite.setImage(runGif.getImage()) ; //= new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
+                sprite.setImage(runGif.getImage()); //= new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
             } else {
                 sprite.setImage(standImg.getImage());
             }
