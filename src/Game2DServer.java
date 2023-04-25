@@ -16,16 +16,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.*;
 
-import org.omg.CORBA.BAD_TYPECODE;
 
 public class Game2DServer extends Application {
 
     private Server server;
     private static int maxPlayers = 4;
-    private static ArrayList<Player> players = new ArrayList<>();
-    private static String mapName = "movingtest";
+    private static Map<Integer, Player> players = new HashMap<>();
+    private static String mapName = "newtest";
     private static String gameID = "12345";
     private static int clientCount = 0;
 
@@ -199,7 +198,7 @@ public class Game2DServer extends Application {
 
                         if(player != null) {
                             // determine which other players are visible to the player
-                            for(Player otherPlayer : players) {
+                            for(Player otherPlayer : players.values()) {
                                 if(id != otherPlayer.getId()) {
                                     double distance = calculateDistance(player.getPosX(), player.getPosY(), otherPlayer.getPosX(), otherPlayer.getPosY());
                                     if(distance <= 600) {
@@ -208,17 +207,13 @@ public class Game2DServer extends Application {
                                     // otherPlayers.add(otherPlayer);
                                 }
                             }
-                            
-                            
-                        } else {
-                            players.add(out);
                         }
+                        players.put(id, out);
                         visiblePlayers = new Player[otherPlayers.size()];
                         for(int i = 0; i < otherPlayers.size(); i++) {
                             visiblePlayers[i] = otherPlayers.get(i);
                         }
 
-                        // get player information
                         player = out;
 
                         GameInfo game = new GameInfo(gameID, mapName, player.getPosX(), player.getPosY(), visiblePlayers);
