@@ -49,7 +49,9 @@ public class Game2DClean extends Application {
     private final static String CREWMATE_RUNNING = "assets/run.gif"; // file with icon for crewmates
     private static String backgroundImage = "assets/background.jpg"; // default value for debug purposes
     private static String collideMaskImage = "assets/collision.png"; // default value for debug purposes
-    private static String miniMapImage;
+    private static String miniMapImage = "assets/background.jpg"; // 
+
+    private String mapName = "tewtest";
 
     private ImageView collisionMask = null;
     private ImageView background = null;
@@ -134,7 +136,7 @@ public class Game2DClean extends Application {
                 "Brown",
                 "Kenny");
 
-        ComboBox<String> comboChar = new ComboBox(characterList);
+        ComboBox<String> comboChar = new ComboBox<>(characterList);
 
         btnSettings.setOnAction(event -> {
             openSettings();
@@ -223,6 +225,7 @@ public class Game2DClean extends Application {
     }
 
     public void loadSettings() {
+        mapName = "";
         try {
             Scanner settingsReader = new Scanner(new File(SETTINGS));
 
@@ -232,9 +235,9 @@ public class Game2DClean extends Application {
                 settingsMap.put(s[0], s[1]);
             }
 
-            backgroundImage = String.format("levels/%s/background3.jpg", settingsMap.get("level"));
-            collideMaskImage = String.format("levels/%s/collide_mask2.png", settingsMap.get("level"));
-            miniMapImage = String.format("levels/%s/finalMiniMap.jpg", settingsMap.get("level"));
+            // backgroundImage = String.format("levels/%s/background3.jpg", settingsMap.get("level"));
+            // collideMaskImage = String.format("levels/%s/collide_mask2.png", settingsMap.get("level"));
+            // miniMapImage = String.format("levels/%s/finalMiniMap.jpg", settingsMap.get("level"));
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -282,14 +285,15 @@ public class Game2DClean extends Application {
 
         root.getChildren().add(background);
         // root.getChildren().add(collisionMask); // debug
-        root.getChildren().add(crewmate);
-        root.getChildren().add(lblName);
 
         root.getChildren().add(otherPlayersPane);
-
+        root.getChildren().add(crewmate);
+        root.getChildren().add(lblName);
         root.getChildren().add(fov);
-        root.getChildren().add(miniMap);
+
+        // root.getChildren().add(miniMap);
         root.getChildren().add(pgTasks);
+        
         // display the window
         scene = new Scene(root, SCREENWIDTH, SCREENHEIGHT);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
@@ -418,7 +422,6 @@ public class Game2DClean extends Application {
     }
 
     private void doConnect() {
-        // todo
         client.start();
     }
 
@@ -467,22 +470,41 @@ public class Game2DClean extends Application {
                 } else if(response instanceof GameInfo) {
                     // get game info from server
                     GameInfo game = (GameInfo)response;
-                    // if(renderCounter % 10 == 0) {
-                        if(game.getOthers().length != others.size()) {
-                            // rebuild player list
-                            for(Crewmate c : others) {
-                                otherPlayersPane.getChildren().remove(c);
-                            }
 
-                            others = new ArrayList<>();
-                            for(Player p : game.getOthers()) {
-                                Crewmate c = new Crewmate();
-                                c.setPos(p.getPosX(), p.getPosY());
-                                others.add(c);
-                                otherPlayersPane.getChildren().add(c);
-                            }
+                    if(!mapName.equals(game.getMapName())) {
+                        mapName = game.getMapName();
+                        backgroundImage = String.format("levels/%s/background3.jpg", game.getMapName());
+                        collideMaskImage = String.format("levels/%s/collide_mask2.png", game.getMapName());
+                        miniMapImage = String.format("levels/%s/finalMiniMap.jpg", game.getMapName());
+
+                        collisionMask.setImage(new ImageView(new File(collideMaskImage).toURI().toString()).getImage());
+                        background.setImage(new ImageView(new File(backgroundImage).toURI().toString()).getImage());
+                        miniMap.setImage(new ImageView(new File(backgroundImage).toURI().toString()).getImage());
+
+                        // crewmate.setPos(1500.0,4600.0);
+                        // crewmate.moveSprite(0, 0);
+                        System.out.println("Loaded map");
+                    }
+
+                    // if there is mismatch between own player list and list from server:
+                    if(game.getOthers().length != others.size()) {
+                        // rebuild player list
+
+                        // remove player sprites from screen
+                        for(Crewmate c : others) {
+                            otherPlayersPane.getChildren().remove(c);
                         }
-                    // }
+
+                        // show sprites from updated player list on screen
+                        others = new ArrayList<>();
+                        for(Player p : game.getOthers()) {
+                            Crewmate c = new Crewmate();
+                            c.setVisible(false);
+                            c.setPos(p.getPosX(), p.getPosY());
+                            others.add(c);
+                            otherPlayersPane.getChildren().add(c);
+                        }
+                    }
 
                     if(game.getOthers() != null && game.getOthers().length > 0) {
                         for(int i = 0; i < others.size(); i++) {
@@ -490,6 +512,8 @@ public class Game2DClean extends Application {
                             ((Crewmate)otherPlayersPane.getChildren().get(i)).setPos(p.getPosX(), p.getPosY());
                             ((Crewmate)otherPlayersPane.getChildren().get(i)).moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
                             ((Crewmate)otherPlayersPane.getChildren().get(i)).setFacing(p.getFacing());
+
+                            others.get(i).setVisible(true);
                         }
                     }
                 } else if (response instanceof GameInfo) {

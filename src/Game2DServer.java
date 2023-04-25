@@ -22,9 +22,9 @@ import java.util.*;
 public class Game2DServer extends Application {
 
     private Server server;
-    private static int maxPlayers = 4;
+    private static int maxPlayers = 100; // todo set to normal number
     private static Map<Integer, Player> players = new HashMap<>();
-    private static String mapName = "newtest";
+    private static String mapName = "movingtest";
     private static String gameID = "12345";
     private static int clientCount = 0;
 
