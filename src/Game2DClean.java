@@ -5,20 +5,14 @@ import javafx.scene.*;
 import javafx.scene.image.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.media.VideoTrack;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Text;
 import javafx.stage.*;
 import javafx.animation.*;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
-
-import javax.xml.stream.events.Namespace;
-
-import org.w3c.dom.ranges.Range;
 
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
@@ -33,7 +27,6 @@ import javafx.geometry.*;
  * RGB based collision
  * Collsion between two imposters
  */
-
 public class Game2DClean extends Application {
     // Window attributes
     private Stage stage;
@@ -47,8 +40,8 @@ public class Game2DClean extends Application {
 
     private String CREWMATE_IMAGE = "assets/student.png"; // file with icon for a crewmate
     private final static String CREWMATE_RUNNING = "assets/run.gif"; // file with icon for crewmates
-    private static String backgroundImage = "assets/background.jpg"; // default value for debug purposes
-    private static String collideMaskImage = "assets/collision.png"; // default value for debug purposes
+    private static String backgroundImage = "levels/test/background.jpg"; // default value for debug purposes
+    private static String collideMaskImage = "levels/test/collision.png"; // default value for debug purposes
     private static String miniMapImage = "assets/background.jpg"; // 
 
     private String mapName = "tewtest";
@@ -137,6 +130,7 @@ public class Game2DClean extends Application {
                 "Kenny");
 
         ComboBox<String> comboChar = new ComboBox<>(characterList);
+        comboChar.getSelectionModel().selectFirst();
 
         btnSettings.setOnAction(event -> {
             openSettings();
@@ -246,7 +240,7 @@ public class Game2DClean extends Application {
 
     // start the game scene
     public void initializeScene() {
-        crewmate = new Crewmate();
+        crewmate = new Crewmate(playerColor);
 
         crewmate.setPos(1500.0,4600.0);
 
@@ -256,13 +250,13 @@ public class Game2DClean extends Application {
         miniMap = new ImageView(new File(miniMapImage).toURI().toString());
 
         Platform.runLater(() -> {
-            miniMap.setTranslateX(-1400 / 2);
-            miniMap.setTranslateY(-780 / 2);
+            miniMap.setTranslateX(-1000 / 2);
+            miniMap.setTranslateY(-600 / 2);
         });
 
         Circle fov = new Circle();
-        fov.setCenterX(1600 / 2);
-        fov.setCenterY(900 / 2);
+        fov.setCenterX(SCREENWIDTH / 2);
+        fov.setCenterY(SCREENHEIGHT / 2);
         fov.setRadius(750);
         fov.setFill(Color.TRANSPARENT);
         fov.setStroke(Color.BLACK);
@@ -480,6 +474,8 @@ public class Game2DClean extends Application {
                         collisionMask.setImage(new ImageView(new File(collideMaskImage).toURI().toString()).getImage());
                         background.setImage(new ImageView(new File(backgroundImage).toURI().toString()).getImage());
                         miniMap.setImage(new ImageView(new File(backgroundImage).toURI().toString()).getImage());
+                        miniMap.setScaleX(.05);
+                        miniMap.setScaleY(.05);
 
                         // crewmate.setPos(1500.0,4600.0);
                         // crewmate.moveSprite(0, 0);
@@ -498,11 +494,13 @@ public class Game2DClean extends Application {
                         // show sprites from updated player list on screen
                         others = new ArrayList<>();
                         for(Player p : game.getOthers()) {
-                            Crewmate c = new Crewmate();
-                            c.setVisible(false);
+                            Crewmate c = new Crewmate(p.getColor());
+                            // c.setVisible(false);
                             c.setPos(p.getPosX(), p.getPosY());
+                            c.moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
                             others.add(c);
                             otherPlayersPane.getChildren().add(c);
+                            // c.setVisible(true);
                         }
                     }
 
@@ -513,7 +511,6 @@ public class Game2DClean extends Application {
                             ((Crewmate)otherPlayersPane.getChildren().get(i)).moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
                             ((Crewmate)otherPlayersPane.getChildren().get(i)).setFacing(p.getFacing());
 
-                            others.get(i).setVisible(true);
                         }
                     }
                 } else if (response instanceof GameInfo) {
@@ -547,6 +544,10 @@ public class Game2DClean extends Application {
         private double imgWidth;
         private double imgHeight;
 
+        private String color;
+        String standingImgPath;
+        String runningImgPath;
+
         private ImageView standImg = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
         private ImageView runGif = new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
 
@@ -558,6 +559,23 @@ public class Game2DClean extends Application {
                 new Task2(new Color(109.0 / 255.0, 56.0 / 255.0, 1, 1)),
                 new Task3(new Color(155.0 / 255.0, 116.0 / 255.0, 1, 1)),
                 new Task4(new Color(155.0 / 255.0, 73.0 / 255.0, 1, 1)));
+
+        public Crewmate(String color) {
+            this.color = color;
+            standingImgPath = String.format("assets/students/%s.png", color);
+            runningImgPath = String.format("assets/run.gif", color); // todo add gifs for other colors
+            standImg = new ImageView(new File(standingImgPath).toURI().toString());
+            runGif = new ImageView(new File(runningImgPath).toURI().toString());
+
+
+            sprite = new ImageView(new File(standingImgPath).toURI().toString());
+            this.getChildren().add(sprite);
+
+            imgWidth = sprite.getImage().getWidth();
+            imgHeight = sprite.getImage().getHeight();
+
+            moveSprite(0, 0);
+        }
 
         public void doTask() {
             Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
@@ -599,16 +617,6 @@ public class Game2DClean extends Application {
         public boolean findVent() {
             Color colorAtPosition = collisionMask.getImage().getPixelReader().getColor((int) posX, (int) posY);
             return colorAtPosition.equals(new Color(1, 0, 0, 1));
-        }
-
-        public Crewmate() {
-            sprite = new ImageView(new File(CREWMATE_IMAGE).toURI().toString());
-            this.getChildren().add(sprite);
-
-            imgWidth = sprite.getImage().getWidth();
-            imgHeight = sprite.getImage().getHeight();
-
-            moveSprite(0, 0);
         }
 
         public double getPosX() {

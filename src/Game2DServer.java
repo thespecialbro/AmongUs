@@ -22,7 +22,8 @@ import java.util.*;
 public class Game2DServer extends Application {
 
     private Server server;
-    private static int maxPlayers = 100; // todo set to normal number
+    private static final int maxPlayers = 100; // todo set to normal number
+    private static int numImpostors = 1;
     private static Map<Integer, Player> players = new HashMap<>();
     private static String mapName = "movingtest";
     private static String gameID = "12345";
@@ -201,12 +202,14 @@ public class Game2DServer extends Application {
                             for(Player otherPlayer : players.values()) {
                                 if(id != otherPlayer.getId()) {
                                     double distance = calculateDistance(player.getPosX(), player.getPosY(), otherPlayer.getPosX(), otherPlayer.getPosY());
-                                    if(distance <= 600) {
+                                    if(distance <= 500) {
                                         otherPlayers.add(otherPlayer);
                                     }
                                     // otherPlayers.add(otherPlayer);
                                 }
                             }
+                        } else {
+                            // send whether player is an impostor
                         }
                         players.put(id, out);
                         visiblePlayers = new Player[otherPlayers.size()];
