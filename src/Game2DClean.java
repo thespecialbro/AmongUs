@@ -49,7 +49,7 @@ public class Game2DClean extends Application {
     private final static String CREWMATE_RUNNING = "assets/run.gif"; // file with icon for crewmates
     private static String backgroundImage = "assets/background.jpg"; // default value for debug purposes
     private static String collideMaskImage = "assets/collision.png"; // default value for debug purposes
-    private static String miniMapImage = "assets/background.jpg"; // 
+    private static String miniMapImage = "assets/background.jpg"; //
 
     private String mapName = "tewtest";
 
@@ -77,6 +77,8 @@ public class Game2DClean extends Application {
 
     String playerName = "sadfgfhg";
     String playerColor = "red";
+    boolean isImpostor = true;
+    boolean isAlive = true;
 
     // main program
     public static void main(String[] _args) {
@@ -235,9 +237,12 @@ public class Game2DClean extends Application {
                 settingsMap.put(s[0], s[1]);
             }
 
-            // backgroundImage = String.format("levels/%s/background3.jpg", settingsMap.get("level"));
-            // collideMaskImage = String.format("levels/%s/collide_mask2.png", settingsMap.get("level"));
-            // miniMapImage = String.format("levels/%s/finalMiniMap.jpg", settingsMap.get("level"));
+            // backgroundImage = String.format("levels/%s/background3.jpg",
+            // settingsMap.get("level"));
+            // collideMaskImage = String.format("levels/%s/collide_mask2.png",
+            // settingsMap.get("level"));
+            // miniMapImage = String.format("levels/%s/finalMiniMap.jpg",
+            // settingsMap.get("level"));
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -248,8 +253,7 @@ public class Game2DClean extends Application {
     public void initializeScene() {
         crewmate = new Crewmate();
 
-        crewmate.setPos(1500.0,4600.0);
-
+        crewmate.setPos(1500.0, 4600.0);
 
         collisionMask = new ImageView(new File(collideMaskImage).toURI().toString());
         background = new ImageView(new File(backgroundImage).toURI().toString());
@@ -293,7 +297,7 @@ public class Game2DClean extends Application {
 
         // root.getChildren().add(miniMap);
         root.getChildren().add(pgTasks);
-        
+
         // display the window
         scene = new Scene(root, SCREENWIDTH, SCREENHEIGHT);
         // scene.getStylesheets().addAll(this.getClass().getResource("style.css").toExternalForm());
@@ -303,23 +307,22 @@ public class Game2DClean extends Application {
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
             // Do whatever you want
             SCREENWIDTH = newVal.doubleValue();
-            if(crewmate != null) {
+            if (crewmate != null) {
                 crewmate.moveSprite(0, 0);
             }
 
-            for(int i = 0; i < otherPlayersPane.getChildren().size(); i++) {
+            for (int i = 0; i < otherPlayersPane.getChildren().size(); i++) {
                 Crewmate c = (Crewmate) otherPlayersPane.getChildren().get(i);
 
                 c.moveSprite(c.getPosX(), c.getPosY());
             }
 
-            
         });
-        
+
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
             // Do whatever you want
             SCREENHEIGHT = newVal.doubleValue();
-            if(crewmate != null) {
+            if (crewmate != null) {
                 crewmate.moveSprite(0, 0);
             }
         });
@@ -360,6 +363,9 @@ public class Game2DClean extends Application {
                         goRIGHT = true;
                         break;
 
+                    case SPACE:
+                        client.sendKill();
+                        break;
                     default:
                         ;
                 }
@@ -411,7 +417,7 @@ public class Game2DClean extends Application {
                     crewmate.update();
                     renderCounter++;
                     lastUpdate = now;
-                    if(taskCounter == 4) {
+                    if (taskCounter == 4) {
                         pgTasks.setProgress(100);
                     }
                 }
@@ -425,7 +431,6 @@ public class Game2DClean extends Application {
         client.start();
     }
 
-    
     class Client extends Thread {
         private Socket socket;
         private ObjectOutputStream output;
@@ -464,14 +469,14 @@ public class Game2DClean extends Application {
                     String msg = (String) response;
                     switch (msg) {
                         case "disconnect":
-                        disconnect();
-                        break;
+                            disconnect();
+                            break;
                     }
-                } else if(response instanceof GameInfo) {
+                } else if (response instanceof GameInfo) {
                     // get game info from server
-                    GameInfo game = (GameInfo)response;
+                    GameInfo game = (GameInfo) response;
 
-                    if(!mapName.equals(game.getMapName())) {
+                    if (!mapName.equals(game.getMapName())) {
                         mapName = game.getMapName();
                         backgroundImage = String.format("levels/%s/background3.jpg", game.getMapName());
                         collideMaskImage = String.format("levels/%s/collide_mask2.png", game.getMapName());
@@ -487,36 +492,42 @@ public class Game2DClean extends Application {
                     }
 
                     // if there is mismatch between own player list and list from server:
-                    if(game.getOthers().length != others.size()) {
+                    if (game.getOthers().length != others.size()) {
                         // rebuild player list
 
                         // remove player sprites from screen
-                        for(Crewmate c : others) {
+                        for (Crewmate c : others) {
                             otherPlayersPane.getChildren().remove(c);
                         }
 
                         // show sprites from updated player list on screen
                         others = new ArrayList<>();
-                        for(Player p : game.getOthers()) {
+                        for (Player p : game.getOthers()) {
                             Crewmate c = new Crewmate();
                             c.setVisible(false);
                             c.setPos(p.getPosX(), p.getPosY());
                             others.add(c);
                             otherPlayersPane.getChildren().add(c);
+
                         }
                     }
 
-                    if(game.getOthers() != null && game.getOthers().length > 0) {
-                        for(int i = 0; i < others.size(); i++) {
+                    if (game.getOthers() != null && game.getOthers().length > 0) {
+                        for (int i = 0; i < others.size(); i++) {
                             Player p = game.getOthers()[i];
-                            ((Crewmate)otherPlayersPane.getChildren().get(i)).setPos(p.getPosX(), p.getPosY());
-                            ((Crewmate)otherPlayersPane.getChildren().get(i)).moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
-                            ((Crewmate)otherPlayersPane.getChildren().get(i)).setFacing(p.getFacing());
+                            ((Crewmate) otherPlayersPane.getChildren().get(i)).setPos(p.getPosX(), p.getPosY());
+                            ((Crewmate) otherPlayersPane.getChildren().get(i))
+                                    .moveSprite((p.getPosX() - crewmate.getPosX()), (p.getPosY() - crewmate.getPosY()));
+                            ((Crewmate) otherPlayersPane.getChildren().get(i)).setFacing(p.getFacing());
 
                             others.get(i).setVisible(true);
                         }
                     }
-                } else if (response instanceof GameInfo) {
+
+                    if (!game.getAlive()) {
+                        System.out.println("DEAD");
+                        isAlive = false;
+                    }
 
                 }
 
@@ -537,6 +548,17 @@ public class Game2DClean extends Application {
                 e.printStackTrace();
             }
 
+        }
+
+        public void sendKill() {
+            try {
+                output.writeObject("kill");
+                output.flush();
+                Player p = new Player(false);
+                sendPlayerInfo(p);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -582,13 +604,13 @@ public class Game2DClean extends Application {
 
         public void doVent() {
             if (findVent()) {
-                if(posX > 2030 && posX < 2500 && posY > 2900 && posY < 3260) {
+                if (posX > 2030 && posX < 2500 && posY > 2900 && posY < 3260) {
                     Platform.runLater(() -> {
                         crewmate.setPos(7030, 3700);
                     });
                 }
-                
-                if(posX > 6900 && posX < 7300 && posY > 3500 && posY < 4000) {
+
+                if (posX > 6900 && posX < 7300 && posY > 3500 && posY < 4000) {
                     Platform.runLater(() -> {
                         crewmate.setPos(2200, 3000);
                     });
@@ -628,8 +650,8 @@ public class Game2DClean extends Application {
 
         public void moveSprite(double x, double y) {
             Platform.runLater(() -> {
-                sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth/2) + x);
-                sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight/2) + y);
+                sprite.setTranslateX((SCREENWIDTH / 2) - (imgWidth / 2) + x);
+                sprite.setTranslateY((SCREENHEIGHT / 2) - (imgHeight / 2) + y);
                 // lblPos.setTranslateX((SCREENWIDTH / 2) + x);
                 // lblPos.setTranslateY((SCREENHEIGHT / 2) + y);
             });
@@ -644,9 +666,6 @@ public class Game2DClean extends Application {
             }
         }
 
-        
-
-
         public void update() {
             // updateAnim.handle(System.nanoTime());
 
@@ -654,7 +673,7 @@ public class Game2DClean extends Application {
             double sin45 = Math.sin(Math.PI / 2.0);
 
             if ((goUP ^ goDOWN) || (goLEFT ^ goRIGHT)) { // if actually moving
-                sprite.setImage(runGif.getImage()); //= new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
+                sprite.setImage(runGif.getImage()); // = new ImageView(new File(CREWMATE_RUNNING).toURI().toString());
             } else {
                 sprite.setImage(standImg.getImage());
             }
@@ -689,10 +708,12 @@ public class Game2DClean extends Application {
             }
             // lblPos.setText(String.format("%f, %f", posX, posY));
             // move background to represent player movement
+
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
 
-            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY, facing));            
+            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY, facing));
+
         }
 
         public boolean checkCollision(double posX, double posY) {

@@ -5,7 +5,7 @@ public class Player implements Serializable {
     private String color;
     private double posx;
     private double posy;
-    private boolean isAlive;
+    private boolean isAlive = true;
     private boolean isImpostor;
     private int id;
     private int facing;
@@ -19,13 +19,17 @@ public class Player implements Serializable {
     }
 
 
-    public Player(String name, String color, boolean isAlive, boolean isImpostor) {
+    public Player(String name, String color, boolean isImpostor) {
 
         this.name = name;
         this.color = color;
-        this.isAlive = isAlive;
         this.isImpostor = isImpostor;
     }
+
+    public Player(boolean isAlive) {
+        this.isAlive = isAlive;
+    }
+    
 
     public void setId(int id) {
         this.id = id;
@@ -51,6 +55,10 @@ public class Player implements Serializable {
 
     public boolean isAlive() {
         return isAlive;
+    }
+
+    public void setAlive(boolean isAlive) {
+        this.isAlive = isAlive;
     }
 
     public boolean isImpostor() {

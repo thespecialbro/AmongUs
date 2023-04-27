@@ -18,6 +18,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
+import javax.sql.rowset.CachedRowSet;
+
 
 public class Game2DServer extends Application {
 
@@ -208,6 +210,7 @@ public class Game2DServer extends Application {
                                 }
                             }
                         }
+
                         players.put(id, out);
                         visiblePlayers = new Player[otherPlayers.size()];
                         for(int i = 0; i < otherPlayers.size(); i++) {
@@ -216,8 +219,21 @@ public class Game2DServer extends Application {
 
                         player = out;
 
-                        GameInfo game = new GameInfo(gameID, mapName, player.getPosX(), player.getPosY(), visiblePlayers);
+
+                        GameInfo game = new GameInfo(gameID, mapName, player.getPosX(), player.getPosY(), visiblePlayers, player.isAlive());
                         output.writeObject(game);
+                    }
+                    if(message instanceof String) {
+                        switch((String) message) {
+                            case "kill":
+                            System.out.println("KILL");
+                            for (Player otherPlayer : players.values()) {
+                                if (calculateDistance(player.getPosX(), player.getPosY(), otherPlayer.getPosX(), otherPlayer.getPosY()) < 50) {
+                                    otherPlayer.setAlive(false);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             } catch (IOException e) {
