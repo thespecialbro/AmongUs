@@ -285,7 +285,7 @@ public class Game2DClean extends Application {
         root.getChildren().add(lblName);
         root.getChildren().add(fov);
 
-        // root.getChildren().add(miniMap);
+        root.getChildren().add(miniMap);
         root.getChildren().add(pgTasks);
         
         // display the window
@@ -446,6 +446,8 @@ public class Game2DClean extends Application {
             }
         }
 
+        public boolean isConnected() { return connected; }
+
         public void sendPlayerInfo(Player player) {
             if (!connected)
                 return;
@@ -544,7 +546,6 @@ public class Game2DClean extends Application {
         private double imgWidth;
         private double imgHeight;
 
-        private String color;
         String standingImgPath;
         String runningImgPath;
 
@@ -561,7 +562,6 @@ public class Game2DClean extends Application {
                 new Task4(new Color(155.0 / 255.0, 73.0 / 255.0, 1, 1)));
 
         public Crewmate(String color) {
-            this.color = color;
             standingImgPath = String.format("assets/students/%s.png", color);
             runningImgPath = String.format("assets/run.gif", color); // todo add gifs for other colors
             standImg = new ImageView(new File(standingImgPath).toURI().toString());
@@ -700,7 +700,7 @@ public class Game2DClean extends Application {
             background.setTranslateX(-posX + (background.getImage().getWidth() / 2));
             background.setTranslateY(-posY + (background.getImage().getHeight() / 2));
 
-            client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY, facing));            
+            if(client.isConnected())client.sendPlayerInfo(new Player(playerName, playerColor, posX, posY, facing));            
         }
 
         public boolean checkCollision(double posX, double posY) {

@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -25,6 +26,7 @@ public class Game2DServer extends Application {
     private static final int maxPlayers = 100; // todo set to normal number
     private static int numImpostors = 1;
     private static Map<Integer, Player> players = new HashMap<>();
+    private static Map<Integer, ClientHandler> clients = new HashMap<>();
     private static String mapName = "movingtest";
     private static String gameID = "12345";
     private static int clientCount = 0;
@@ -77,6 +79,12 @@ public class Game2DServer extends Application {
         primaryStage.setTitle("Game 2D Server");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        primaryStage.setOnCloseRequest((evt) -> {
+            stop();
+            Platform.exit();
+            System.exit(0);
+        });
 
         server = new Server(logTextArea);
         new Thread(server).start();
@@ -140,8 +148,10 @@ public class Game2DServer extends Application {
 
                 while (running) {
                     Socket clientSocket = serverSocket.accept();
-                    log("New client connected: " + clientSocket.getInetAddress().getHostAddress());
-                    new ClientHandler(clientSocket, clientCount+1).start();
+                    log("New client connected: " + clientSocket.getInetAddress().getHostAddress() + " id: " + clientCount);
+                    clients.put(clientCount, new ClientHandler(clientSocket, clientCount+1));
+                    clients.get(clientCount).start();
+
                     clientCount++;
                     if(clientCount >= maxPlayers) break; // stop accepting new connections when enough players are present
                 }
@@ -156,6 +166,9 @@ public class Game2DServer extends Application {
             running = false;
             try {
                 if (serverSocket != null) {
+                    for(ClientHandler c : clients.values()) {
+                        c.sendDisconnect();
+                    }
                     serverSocket.close();
                 }
             } catch (IOException e) {
@@ -245,6 +258,20 @@ public class Game2DServer extends Application {
         }
         private double calculateDistance(double x1, double y1, double x2, double y2) {
             return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+
+        public void sendDisconnect() {
+            try {
+                output.writeUTF("disconnect");
+                output.flush();
+
+                input.close();
+                output.close();
+                clientSocket.close();
+            } catch (IOException e) {
+                System.out.println("Error disconnecting client");
+                e.printStackTrace();
+            }
         }
     }
 }
